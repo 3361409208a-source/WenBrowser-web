@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "我的导航",
+  title: "WEN Browser",
   description: "个人导航网站",
 };
 
