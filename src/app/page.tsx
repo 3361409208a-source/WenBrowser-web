@@ -95,40 +95,96 @@ const icons = {
   ),
 };
 
+// Generic link icon
+const linkIcon = (
+  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+
 const categories: Category[] = [
   {
-    title: "常用",
+    title: "🎮 摸鱼专用",
     links: [
-      { name: "Google", url: "https://www.google.com", icon: icons.google },
-      { name: "GitHub", url: "https://github.com", icon: icons.github },
-      { name: "哔哩哔哩", url: "https://www.bilibili.com", icon: icons.bilibili },
-      { name: "知乎", url: "https://www.zhihu.com", icon: icons.zhihu },
+      { name: "抖音网页版", url: "https://www.douyin.com/?recommend=1", icon: linkIcon },
+      { name: "抖音创作者服务平台", url: "https://creator.douyin.com/", icon: linkIcon },
+      { name: "哔哩哔哩", url: "https://www.bilibili.com/", icon: linkIcon },
+      { name: "YouTube (梯子)", url: "https://www.youtube.com/", icon: linkIcon },
+      { name: "知乎", url: "https://www.zhihu.com/", icon: linkIcon },
+      { name: "微博", url: "https://weibo.com/", icon: linkIcon },
+      { name: "小红书", url: "https://www.xiaohongshu.com/explore", icon: linkIcon },
+      { name: "小红书创作平台", url: "https://creator.xiaohongshu.com/publish/publish?source=official", icon: linkIcon },
+      { name: "豆瓣", url: "https://www.douban.com/", icon: linkIcon },
+      { name: "网易云音乐", url: "https://music.163.com/", icon: linkIcon },
+      { name: "Spotify", url: "https://open.spotify.com/", icon: linkIcon },
+      { name: "淘宝", url: "https://www.taobao.com/", icon: linkIcon },
+      { name: "什么值得买", url: "https://www.smzdm.com/", icon: linkIcon },
+      { name: "京东", url: "https://www.jd.com/", icon: linkIcon },
+      { name: "天猫", url: "https://www.tmall.com/", icon: linkIcon },
+      { name: "虎嗅", url: "https://www.huxiu.com/", icon: linkIcon },
     ],
   },
   {
-    title: "开发",
+    title: "🎬 影视追剧",
     links: [
-      { name: "Stack Overflow", url: "https://stackoverflow.com", icon: icons.stackoverflow },
-      { name: "MDN", url: "https://developer.mozilla.org", icon: icons.mdn },
-      { name: "Vercel", url: "https://vercel.com", icon: icons.vercel },
-      { name: "npm", url: "https://www.npmjs.com", icon: icons.npm },
+      { name: "人人影视 (RRYS)", url: "https://www.rrdynb.com/index.html", icon: linkIcon },
+      { name: "低端影视", url: "https://ddys.art/", icon: linkIcon },
+      { name: "LIBVIO", url: "https://www.libvio.link/", icon: linkIcon },
+      { name: "在线之家", url: "https://www.zxzj.pro/", icon: linkIcon },
+      { name: "厂长资源", url: "https://www.cz01.vip/", icon: linkIcon },
+      { name: "剧荒TV", url: "https://juhuang.tv/", icon: linkIcon },
+      { name: "茶杯狐 Cupfox", url: "https://cupfox.love/", icon: linkIcon },
     ],
   },
   {
-    title: "设计",
+    title: "🎵 音乐听歌",
     links: [
-      { name: "Figma", url: "https://www.figma.com", icon: icons.figma },
-      { name: "Dribbble", url: "https://dribbble.com", icon: icons.dribbble },
-      { name: "Unsplash", url: "https://unsplash.com", icon: icons.unsplash },
-      { name: "Color Hunt", url: "https://colorhunt.co", icon: icons.colorhunt },
+      { name: "Listen 1", url: "https://listen1.github.io/listen1/", icon: linkIcon },
+      { name: "铜钟", url: "https://tonzhon.com/", icon: linkIcon },
+      { name: "MyFreeMP3", url: "https://tool.liumingye.cn/music/?page=searchPage#/", icon: linkIcon },
+      { name: "果核音乐", url: "https://music.ghxi.com/", icon: linkIcon },
+      { name: "音乐下载器 (TuneFree)", url: "https://music.unmeta.cn/stars", icon: linkIcon },
     ],
   },
   {
-    title: "学习",
+    title: "📱 短视频/搞笑",
     links: [
-      { name: "Coursera", url: "https://www.coursera.org", icon: icons.coursera },
-      { name: "YouTube", url: "https://www.youtube.com", icon: icons.youtube },
-      { name: "掘金", url: "https://juejin.cn", icon: icons.juejin },
+      { name: "抖音网页版", url: "https://www.douyin.com/", icon: linkIcon },
+      { name: "快手", url: "https://www.kuaishou.com/new-reco", icon: linkIcon },
+      { name: "皮皮虾", url: "https://www.ppxia.live/", icon: linkIcon },
+      { name: "糗事百科", url: "https://www.qiushibaike.com/", icon: linkIcon },
+      { name: "煎蛋", url: "https://jandan.net/", icon: linkIcon },
+      { name: "无聊图", url: "https://jandan.net/pic", icon: linkIcon },
+    ],
+  },
+  {
+    title: "🎤 直播/游戏",
+    links: [
+      { name: "虎牙直播", url: "https://www.huya.com/", icon: linkIcon },
+      { name: "斗鱼直播", url: "https://www.douyu.com/", icon: linkIcon },
+      { name: "企鹅电竞", url: "https://egame.qq.com/", icon: linkIcon },
+      { name: "B站直播", url: "https://live.bilibili.com/", icon: linkIcon },
+      { name: "Steam", url: "https://store.steampowered.com/", icon: linkIcon },
+      { name: "Epic Games", url: "https://www.epicgames.com/store/zh-CN/", icon: linkIcon },
+      { name: "WeGame", url: "https://www.wegame.com.cn/", icon: linkIcon },
+    ],
+  },
+  {
+    title: "🧩 动漫/漫画",
+    links: [
+      { name: "哔哩哔哩番剧", url: "https://www.bilibili.com/anime", icon: linkIcon },
+      { name: "AGE动漫", url: "https://www.agemys.org/", icon: linkIcon },
+      { name: "动漫之家", url: "https://www.dmzj.com/", icon: linkIcon },
+      { name: "快看漫画", url: "https://www.kuaikanmanhua.com/", icon: linkIcon },
+    ],
+  },
+  {
+    title: "🎉 娱乐社区",
+    links: [
+      { name: "NGA玩家社区", url: "https://bbs.nga.cn/", icon: linkIcon },
+      { name: "V2EX", url: "https://www.v2ex.com/", icon: linkIcon },
+      { name: "贴吧", url: "https://tieba.baidu.com/", icon: linkIcon },
     ],
   },
 ];
