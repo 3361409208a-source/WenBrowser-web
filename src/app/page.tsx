@@ -234,18 +234,15 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <header className="mb-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg mb-3">
+        <header className="mb-10 text-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
             WEN Browser
           </h1>
-          <p className="text-white/70 text-sm drop-shadow">
-            收藏常用网站，快速访问所需
-          </p>
         </header>
 
         {/* Search */}
-        <div className="mb-10">
-          <div className="relative group max-w-md">
+        <div className="mb-10 flex justify-center">
+          <div className="relative group max-w-md w-full">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-500" />
             <div className="relative flex items-center bg-black/30 backdrop-blur-xl rounded-xl border border-white/10">
               <svg className="absolute left-4 w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
