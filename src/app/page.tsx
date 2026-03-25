@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useState as useHoverState } from "react";
 
 interface Link {
   name: string;
@@ -95,7 +95,66 @@ const icons = {
   ),
 };
 
-// Generic link icon
+// Link Card Component with Preview
+function LinkCard({ link }: { link: Link }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(link.url)}&screenshot=true&meta=false&embed=screenshot.url`;
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block"
+    >
+      <div className="relative overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 hover:border-white/20 hover:border-blue-400/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10">
+        {/* Preview Image Container */}
+        <div className="relative h-28 w-full overflow-hidden bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          {!imageError && (
+            <img
+              src={previewUrl}
+              alt={`${link.name} preview`}
+              className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
+          )}
+          {/* Loading/Error State */}
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />
+            </div>
+          )}
+          {imageError && (
+            <div className="absolute inset-0 flex items-center justify-center text-white/30">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            </div>
+          )}
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        </div>
+
+        {/* Card Content */}
+        <div className="flex items-center gap-3 p-3">
+          <div className="text-white/60 group-hover:text-blue-300 transition-colors duration-300 flex-shrink-0">
+            {link.icon}
+          </div>
+          <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300 truncate">
+            {link.name}
+          </span>
+          {/* External Link Indicator */}
+          <svg className="w-3 h-3 text-white/30 group-hover:text-blue-300 transition-colors duration-300 flex-shrink-0 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </div>
+      </div>
+    </a>
+  );
+}
 const linkIcon = (
   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -327,24 +386,9 @@ export default function Home() {
                 <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4 ml-1">
                   {category.title}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {category.links.map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group"
-                    >
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 hover:border-white/20 transition-all duration-300 hover:scale-[1.02]">
-                        <div className="text-white/60 group-hover:text-blue-300 transition-colors duration-300">
-                          {link.icon}
-                        </div>
-                        <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300 truncate">
-                          {link.name}
-                        </span>
-                      </div>
-                    </a>
+                    <LinkCard key={link.name} link={link} />
                   ))}
                 </div>
               </section>
