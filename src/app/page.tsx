@@ -89,6 +89,9 @@ const ENGINES = {
   baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
 };
 
+const STABLE_STORAGE_KEY = "moyu-user-config-stable";
+const OLD_KEYS = ["moyu-v21-rename-env", "moyu-v22-low-opacity", "moyu-v23-build-fix", "moyu-v24-download-page", "moyu-v25-final"];
+
 const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 };
 
 function SortableItem({ link, theme, onRemove }: { link: Link; theme: ThemeKey; onRemove: () => void }) {
@@ -121,7 +124,6 @@ export default function Home() {
   const [theme, setTheme] = useState<ThemeKey>("default");
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [bgUrl, setBgUrl] = useState(DEFAULT_BG);
   const [bgType, setBgType] = useState<"video" | "image">("video");
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
@@ -135,7 +137,15 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("moyu-v25-final");
+    // SEARCH FOR DATA IN STABLE KEY OR OLD KEYS
+    let saved = localStorage.getItem(STABLE_STORAGE_KEY);
+    if (!saved) {
+      for (const k of OLD_KEYS) {
+        const os = localStorage.getItem(k);
+        if (os) { saved = os; break; }
+      }
+    }
+
     if (saved) {
       try {
         const p = JSON.parse(saved);
@@ -143,15 +153,15 @@ export default function Home() {
         if (p.bgType) setBgType(p.bgType); if (p.theme) setTheme(p.theme);
       } catch (e) {}
     } else { setSelectedCatId(DEFAULT_CATEGORIES[0].id); }
+    
     const r = indexedDB.open("moyu-storage-db", 2);
     r.onsuccess = (e: any) => {
       const db = e.target.result; const tx = db.transaction(["assets"],"readonly");
       tx.objectStore("assets").get("bg-blob").onsuccess = (ev: any) => { if (ev.target.result) setBgUrl(URL.createObjectURL(ev.target.result)); };
     };
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => { if (mounted) localStorage.setItem("moyu-v25-final", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
+  useEffect(() => { if (mounted) localStorage.setItem(STABLE_STORAGE_KEY, JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
 
   const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
   const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
@@ -198,10 +208,10 @@ export default function Home() {
       </div>
 
       <div className="fixed top-6 right-6 z-[100] flex items-center gap-2">
-        <Link href="/download" className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+        <Link href="/download" className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-xl">
            <Download size={14} /> 获取桌面增强版
         </Link>
-        <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5">
+        <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5 shadow-2xl">
           <button onClick={()=>setIsSettingsOpen(true)} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></button>
           <button onClick={togglePlay} className="p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}</button>
           <button onClick={toggleMute} className="p-2 text-white/30 hover:text-white transition-all">{isMuted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button>
@@ -249,7 +259,6 @@ export default function Home() {
         </DndContext>
       </div>
 
-      {/* CUSTOM MODALS */}
       <AnimatePresence>
         {isLinkModalOpen && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
@@ -328,7 +337,7 @@ export default function Home() {
                </div>
                <div className="p-6 border-t border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl">
                   <div className="flex gap-4"><button onClick={exportConfig} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Share2 size={18}/></button><button onClick={()=>configInputRef.current?.click()} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Upload size={18}/></button></div>
-                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.15-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.16-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
                </div>
             </motion.div>
           </div>
