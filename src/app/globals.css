@@ -11,13 +11,22 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: 'MaoKenZhuyuanTi';
+  src: url('./font/MaoKenZhuYuanTi-MaokenZhuyuanTi-2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'MaoKenZhuyuanTi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 
 /* Smooth scroll */
 html {
@@ -53,3 +62,17 @@ html {
   outline: 2px solid rgba(168, 85, 247, 0.5);
   outline-offset: 2px;
 }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+

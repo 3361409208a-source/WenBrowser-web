@@ -105,89 +105,31 @@ const linkIcon = (
 
 const categories: Category[] = [
   {
-    title: "🎮 摸鱼专用",
+    title: "✨ 常用导航",
     links: [
-      { name: "抖音网页版", url: "https://www.douyin.com/?recommend=1", icon: linkIcon },
-      { name: "抖音创作者服务平台", url: "https://creator.douyin.com/", icon: linkIcon },
-      { name: "哔哩哔哩", url: "https://www.bilibili.com/", icon: linkIcon },
-      { name: "YouTube (梯子)", url: "https://www.youtube.com/", icon: linkIcon },
-      { name: "知乎", url: "https://www.zhihu.com/", icon: linkIcon },
-      { name: "微博", url: "https://weibo.com/", icon: linkIcon },
-      { name: "小红书", url: "https://www.xiaohongshu.com/explore", icon: linkIcon },
-      { name: "小红书创作平台", url: "https://creator.xiaohongshu.com/publish/publish?source=official", icon: linkIcon },
-      { name: "豆瓣", url: "https://www.douban.com/", icon: linkIcon },
+      { name: "哔哩哔哩", url: "https://www.bilibili.com/", icon: icons.bilibili },
+      { name: "抖音", url: "https://www.douyin.com/", icon: linkIcon },
+      { name: "小红书", url: "https://www.xiaohongshu.com/", icon: linkIcon },
+      { name: "腾讯视频", url: "https://v.qq.com/", icon: linkIcon },
+      { name: "爱奇艺", url: "https://www.iqiyi.com/", icon: linkIcon },
+      { name: "优酷", url: "https://www.youku.com/", icon: linkIcon },
       { name: "网易云音乐", url: "https://music.163.com/", icon: linkIcon },
-      { name: "Spotify", url: "https://open.spotify.com/", icon: linkIcon },
-      { name: "淘宝", url: "https://www.taobao.com/", icon: linkIcon },
-      { name: "什么值得买", url: "https://www.smzdm.com/", icon: linkIcon },
-      { name: "京东", url: "https://www.jd.com/", icon: linkIcon },
-      { name: "天猫", url: "https://www.tmall.com/", icon: linkIcon },
-      { name: "虎嗅", url: "https://www.huxiu.com/", icon: linkIcon },
     ],
   },
   {
-    title: "🎬 影视追剧",
+    title: "🎮 热门游戏",
     links: [
-      { name: "人人影视 (RRYS)", url: "https://www.rrdynb.com/index.html", icon: linkIcon },
-      { name: "低端影视", url: "https://ddys.art/", icon: linkIcon },
-      { name: "LIBVIO", url: "https://www.libvio.link/", icon: linkIcon },
-      { name: "在线之家", url: "https://www.zxzj.pro/", icon: linkIcon },
-      { name: "厂长资源", url: "https://www.cz01.vip/", icon: linkIcon },
-      { name: "剧荒TV", url: "https://juhuang.tv/", icon: linkIcon },
-      { name: "茶杯狐 Cupfox", url: "https://cupfox.love/", icon: linkIcon },
+      { name: "4399小游戏", url: "https://www.4399.com/", icon: linkIcon },
+      { name: "TapTap", url: "https://www.taptap.cn/", icon: linkIcon },
+      { name: "米游社", url: "https://www.miyoushe.com/", icon: linkIcon },
+      { name: "网易大神", url: "https://ds.163.com/", icon: linkIcon },
+      { name: "腾讯游戏", url: "https://game.qq.com/", icon: linkIcon },
     ],
   },
-  {
-    title: "🎵 音乐听歌",
-    links: [
-      { name: "Listen 1", url: "https://listen1.github.io/listen1/", icon: linkIcon },
-      { name: "铜钟", url: "https://tonzhon.com/", icon: linkIcon },
-      { name: "MyFreeMP3", url: "https://tool.liumingye.cn/music/?page=searchPage#/", icon: linkIcon },
-      { name: "果核音乐", url: "https://music.ghxi.com/", icon: linkIcon },
-      { name: "音乐下载器 (TuneFree)", url: "https://music.unmeta.cn/stars", icon: linkIcon },
-    ],
-  },
-  {
-    title: "📱 短视频/搞笑",
-    links: [
-      { name: "抖音网页版", url: "https://www.douyin.com/", icon: linkIcon },
-      { name: "快手", url: "https://www.kuaishou.com/new-reco", icon: linkIcon },
-      { name: "皮皮虾", url: "https://www.ppxia.live/", icon: linkIcon },
-      { name: "糗事百科", url: "https://www.qiushibaike.com/", icon: linkIcon },
-      { name: "煎蛋", url: "https://jandan.net/", icon: linkIcon },
-      { name: "无聊图", url: "https://jandan.net/pic", icon: linkIcon },
-    ],
-  },
-  {
-    title: "🎤 直播/游戏",
-    links: [
-      { name: "虎牙直播", url: "https://www.huya.com/", icon: linkIcon },
-      { name: "斗鱼直播", url: "https://www.douyu.com/", icon: linkIcon },
-      { name: "企鹅电竞", url: "https://egame.qq.com/", icon: linkIcon },
-      { name: "B站直播", url: "https://live.bilibili.com/", icon: linkIcon },
-      { name: "Steam", url: "https://store.steampowered.com/", icon: linkIcon },
-      { name: "Epic Games", url: "https://www.epicgames.com/store/zh-CN/", icon: linkIcon },
-      { name: "WeGame", url: "https://www.wegame.com.cn/", icon: linkIcon },
-    ],
-  },
-  {
-    title: "🧩 动漫/漫画",
-    links: [
-      { name: "哔哩哔哩番剧", url: "https://www.bilibili.com/anime", icon: linkIcon },
-      { name: "AGE动漫", url: "https://www.agemys.org/", icon: linkIcon },
-      { name: "动漫之家", url: "https://www.dmzj.com/", icon: linkIcon },
-      { name: "快看漫画", url: "https://www.kuaikanmanhua.com/", icon: linkIcon },
-    ],
-  },
-  {
-    title: "🎉 娱乐社区",
-    links: [
-      { name: "NGA玩家社区", url: "https://bbs.nga.cn/", icon: linkIcon },
-      { name: "V2EX", url: "https://www.v2ex.com/", icon: linkIcon },
-      { name: "贴吧", url: "https://tieba.baidu.com/", icon: linkIcon },
-    ],
-  },
+
 ];
+
+
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -222,6 +164,30 @@ export default function Home() {
     }
   };
 
+  const [engine, setEngine] = useState<"bing" | "google" | "baidu">("bing");
+  const [isSearching, setIsSearching] = useState(false);
+
+  const engines = {
+    bing: { name: "必应", url: "https://www.bing.com/search?q=", iframeUrl: "https://www.bing.com/search?q=" },
+    google: { name: "谷歌", url: "https://www.google.com/search?q=", iframeUrl: "https://www.google.com/search?q=" },
+    baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
+  };
+
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (search.trim()) {
+      setIsSearching(true);
+      // For Bing/Google/Baidu iframe may need special handling, but we try standard first
+      // Some engines block iframes, but Bing usually allows it with certain headers (sometimes needs &igu=1)
+    }
+  };
+
+  const closeSearch = () => {
+    setIsSearching(false);
+    setSearch("");
+  };
+
+
   const filteredCategories = useMemo(() => {
     if (!search.trim()) return categories;
     return categories
@@ -241,7 +207,7 @@ export default function Home() {
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
-          src="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/1531005824-1-192.mp4"
+          src="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4"
           autoPlay
           muted
           loop
@@ -287,54 +253,118 @@ export default function Home() {
         )}
       </button>
 
+      {/* Branding - Top Left */}
+      <div className="fixed top-4 left-4 z-[60] flex items-center gap-3 select-none sm:top-6 sm:left-6 animate-in slide-in-from-top-4 duration-700">
+        <img 
+          src="/logologo.png" 
+          alt="Logo" 
+          className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)] animate-float" 
+        />
+        <h1 className="text-lg sm:text-xl font-bold text-white drop-shadow-lg tracking-tight">
+          WEN Browser
+        </h1>
+      </div>
+
       {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Header */}
-        <header className="mb-10 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-            WEN Browser
-          </h1>
-        </header>
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mt-12 sm:mt-16">
+        {/* Old Header removed, replaced with spacer if needed, but the Branding is now above */}
+
+
 
         {/* Search */}
-        <div className="mb-10 flex justify-center">
-          <div className="relative group max-w-md w-full">
+        <div className="mb-10 flex flex-col items-center gap-4">
+          <div className="flex bg-white/5 backdrop-blur-md rounded-lg p-1 border border-white/10">
+            {(Object.keys(engines) as Array<keyof typeof engines>).map((id) => (
+              <button
+                key={id}
+                onClick={() => setEngine(id)}
+                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-300 ${
+                  engine === id
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                    : "text-white/40 hover:text-white/70 hover:bg-white/5"
+                }`}
+              >
+                {engines[id].name}
+              </button>
+            ))}
+          </div>
+
+          <form 
+            onSubmit={handleSearch}
+            className="relative group max-w-md w-full"
+          >
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-500" />
-            <div className="relative flex items-center bg-black/30 backdrop-blur-xl rounded-xl border border-white/10">
-              <svg className="absolute left-4 w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <div className="relative flex items-center bg-black/30 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden">
+              <div className="pl-4 pr-2 py-3.5 border-r border-white/5 bg-white/5">
+                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="搜索网站..."
-                className="w-full pl-12 pr-4 py-3.5 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
+                placeholder={`在 ${engines[engine].name} 中搜索...`}
+                className="w-full pl-3 pr-4 py-3.5 bg-transparent text-white placeholder-white/30 focus:outline-none text-sm"
               />
+              {search.trim() && (
+                <button
+                  type="submit"
+                  className="mr-2 px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold transition-all duration-300 shadow-lg shadow-blue-500/20 animate-in fade-in slide-in-from-right-2"
+                >
+                  搜索
+                </button>
+              )}
             </div>
-          </div>
+          </form>
         </div>
 
-        {/* Categories */}
-        <main className="space-y-8">
-          {filteredCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-white/60">未找到匹配的网站</p>
+
+        {/* Content Section */}
+        <main className="space-y-8 min-h-[60vh] flex flex-col">
+          {isSearching ? (
+            <div className="flex-1 w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-500">
+              <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-medium text-white/50 tracking-wider">
+                    正在展示 {engines[engine].name} 搜索结果
+                  </span>
+                </div>
+                <button 
+                  onClick={closeSearch}
+                  className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-all duration-300 border border-white/10"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  返回导航
+                </button>
+              </div>
+              <div className="flex-1 bg-white relative min-h-[70vh]">
+                <iframe 
+                  src={`${engines[engine].iframeUrl}${encodeURIComponent(search)}${engine === 'bing' ? '&igu=1' : ''}`}
+                  className="w-full h-full absolute inset-0"
+                  title="Search Results"
+                  frameBorder="0"
+                />
+              </div>
             </div>
           ) : (
             filteredCategories.map((category) => (
-              <section key={category.title}>
+              <section key={category.title} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4 ml-1">
                   {category.title}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {category.links.map((link) => (
+                  {category.links.map((link, idx) => (
                     <a
                       key={link.name}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group"
+                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <div className="flex items-center gap-3 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 hover:border-white/20 transition-all duration-300 hover:scale-[1.02]">
                         <div className="text-white/60 group-hover:text-blue-300 transition-colors duration-300">
@@ -351,6 +381,8 @@ export default function Home() {
             ))
           )}
         </main>
+
+
 
         {/* Footer */}
         <footer className="mt-16 pt-6 border-t border-white/10">
