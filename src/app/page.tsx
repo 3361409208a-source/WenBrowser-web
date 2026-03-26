@@ -1,396 +1,344 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragOverlay,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  defaultDropAnimationSideEffects
+} from "@dnd-kit/core";
+import { 
+  arrayMove, 
+  SortableContext, 
+  sortableKeyboardCoordinates, 
+  rectSortingStrategy,
+  useSortable
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Zap, Monitor, Palette, Download, Upload, Share2, Database, Clock, LayoutGrid, Globe, Terminal, Info, Edit3, Link2, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon } from "lucide-react";
 
 interface Link {
+  id: string;
   name: string;
   url: string;
-  icon: React.ReactNode;
 }
 
 interface Category {
+  id: string;
   title: string;
   links: Link[];
 }
 
-// SVG icons
-const icons = {
-  google: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-    </svg>
-  ),
-  github: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-    </svg>
-  ),
-  bilibili: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/>
-    </svg>
-  ),
-  zhihu: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M5.721 0C2.251 0 0 2.25 0 5.719V18.28C0 21.751 2.252 24 5.721 24h12.56C21.751 24 24 21.75 24 18.281V5.72C24 2.249 21.75 0 18.281 0zm1.964 4.078c-.271.73-.54 1.46-.81 2.19h5.251l-.008-2.19h-4.433zm7.382 0v2.19h2.19V4.078h-2.19zm-9.655 3.28v1.092h1.092V7.358H5.412zm2.19 0v11.48h1.092v-3.28h3.28v-1.092h-3.28V7.358H7.602zm5.471 0v1.092h1.092V7.358h-1.092zm2.19 0v1.092h1.092V7.358h-1.092zm2.19 0v1.092h1.092V7.358h-1.092zm-9.655 2.19v1.092h1.092V9.548H5.412zm9.655 0v5.471h1.092V9.548h-1.092z"/>
-    </svg>
-  ),
-  stackoverflow: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M15.725 0l-1.72 1.277 6.39 8.588 1.72-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15 4.465l-.905 1.94 9.702 4.517.904-1.94-9.701-4.517zm-1.85 4.86l-.44 2.093 10.473 2.201.44-2.092-10.473-2.203zM1.89 15.47V24h19.19v-8.53h-2.133v6.397H4.021v-6.396H1.89zm4.265 2.133v2.13h10.86v-2.13H6.154z"/>
-    </svg>
-  ),
-  mdn: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438L1.5 0zm17.09 4.413L5.41 4.41l.213 2.622 10.125.002-.255 2.716h-6.64l.24 2.573h6.182l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.855L12 19.288l5.373-1.53L18.59 4.414z"/>
-    </svg>
-  ),
-  vercel: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M24 22.525H0l12-21.05 12 21.05z"/>
-    </svg>
-  ),
-  npm: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/>
-    </svg>
-  ),
-  figma: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/>
-    </svg>
-  ),
-  dribbble: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M12 24C5.385 24 0 18.615 0 12S5.385 0 12 0s12 5.385 12 12-5.385 12-12 12zm10.12-10.358c-.35-.11-3.17-.953-6.384-.438 1.34 3.684 1.887 6.684 1.992 7.308 2.3-1.555 3.936-4.02 4.395-6.87zm-6.115 7.808c-.153-.9-.75-4.032-2.19-7.77l-.066.02c-5.79 2.015-7.86 6.025-8.04 6.4 1.73 1.358 3.92 2.166 6.29 2.166 1.42 0 2.77-.29 4-.816zm-11.62-2.58c.232-.4 3.045-5.055 8.332-6.765.135-.045.27-.084.405-.12-.26-.585-.54-1.167-.832-1.74C7.17 11.775 2.206 11.71 1.756 11.7l-.004.312c0 2.633.998 5.037 2.634 6.855zm-2.42-8.955c.46.008 4.683.026 9.477-1.248-1.698-3.018-3.53-5.558-3.8-5.928-2.868 1.35-5.01 3.99-5.676 7.17zM9.6 2.052c.282.38 2.145 2.914 3.822 6 3.645-1.365 5.19-3.44 5.373-3.702-1.81-1.61-4.19-2.586-6.795-2.586-.825 0-1.63.1-2.4.29zm10.335 3.483c-.218.29-1.935 2.493-5.724 4.04.24.49.47.985.68 1.486.08.18.15.36.22.53 3.41-.428 6.8.26 7.14.33-.02-2.42-.88-4.64-2.31-6.38z"/>
-    </svg>
-  ),
-  unsplash: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z"/>
-    </svg>
-  ),
-  colorhunt: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-    </svg>
-  ),
-  coursera: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97-.001v7.21h5.052v-1.707h-3.082V8.221zM12 8.221h1.919v5.503h.065c.298-.568 1.032-.972 1.902-.972 1.732 0 2.564 1.205 2.564 2.91v3.05h-1.919v-2.858c0-.82-.295-1.379-1.032-1.379-.555 0-1.032.379-1.032 1.379v2.858H12V8.221zm-5.919 0h1.97v5.503h.065c.298-.568 1.032-.972 1.902-.972 1.732 0 2.564 1.205 2.564 2.91v3.05h-1.919v-2.858c0-.82-.295-1.379-1.032-1.379-.555 0-1.032.379-1.032 1.379v2.858h-1.97V8.221h-1.97v5.503H5.47c-.298-.568-1.032-.972-1.902-.972-1.732 0-2.564 1.205-2.564 2.91v3.05h1.919v-2.858c0-.82.295-1.379 1.032-1.379.555 0 1.032.379 1.032 1.379v2.858h1.919V8.221z"/>
-    </svg>
-  ),
-  youtube: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-    </svg>
-  ),
-  juejin: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 14.34c-.16.24-.4.34-.68.34H7.92c-.34 0-.58-.12-.72-.36-.14-.24-.14-.5 0-.78l3.6-6.2c.24-.42.66-.64 1.2-.64.54 0 .96.22 1.2.64l3.64 6.2c.18.28.18.54 0 .8z"/>
-    </svg>
-  ),
-};
+type ThemeKey = "default" | "vscode" | "office" | "sakura" | "ocean";
 
-// Generic link icon
-const linkIcon = (
-  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-  </svg>
-);
+const DEFAULT_BG = "https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4";
 
-const categories: Category[] = [
+const DEFAULT_CATEGORIES: Category[] = [
   {
+    id: "cat-1",
     title: "✨ 常用导航",
     links: [
-      { name: "哔哩哔哩", url: "https://www.bilibili.com/", icon: icons.bilibili },
-      { name: "抖音", url: "https://www.douyin.com/", icon: linkIcon },
-      { name: "小红书", url: "https://www.xiaohongshu.com/", icon: linkIcon },
-      { name: "腾讯视频", url: "https://v.qq.com/", icon: linkIcon },
-      { name: "爱奇艺", url: "https://www.iqiyi.com/", icon: linkIcon },
-      { name: "优酷", url: "https://www.youku.com/", icon: linkIcon },
-      { name: "网易云音乐", url: "https://music.163.com/", icon: linkIcon },
+      { id: "link-1", name: "哔哩哔哩", url: "https://www.bilibili.com/" },
+      { id: "link-2", name: "抖音", url: "https://www.douyin.com/" },
+      { id: "link-3", name: "小红书", url: "https://www.xiaohongshu.com/" },
+      { id: "link-4", name: "腾讯视频", url: "https://v.qq.com/" },
+      { id: "link-5", name: "爱奇艺", url: "https://www.iqiyi.com/" },
+      { id: "link-6", name: "优酷", url: "https://www.youku.com/" },
     ],
   },
   {
+    id: "cat-2",
     title: "🎮 热门游戏",
     links: [
-      { name: "4399小游戏", url: "https://www.4399.com/", icon: linkIcon },
-      { name: "TapTap", url: "https://www.taptap.cn/", icon: linkIcon },
-      { name: "米游社", url: "https://www.miyoushe.com/", icon: linkIcon },
-      { name: "网易大神", url: "https://ds.163.com/", icon: linkIcon },
-      { name: "腾讯游戏", url: "https://game.qq.com/", icon: linkIcon },
+      { id: "game-1", name: "4399小游戏", url: "https://www.4399.com/" },
+      { id: "game-2", name: "TapTap", url: "https://www.taptap.cn/" },
+      { id: "game-3", name: "米游社", url: "https://www.miyoushe.com/" },
     ],
   },
-
 ];
 
+const THEMES: Record<ThemeKey, { name: string; overlay: string; text: string; accent: string; card: string; panel: string; btn: string; subtext: string; border: string; preview: string }> = {
+  default: { 
+    name: "极客毛玻璃", overlay: "bg-black/40", text: "text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]", accent: "bg-white text-black", card: "bg-white/5 border-white/10 backdrop-blur-2xl", panel: "bg-slate-950/95 text-white", subtext: "text-white/30", border: "border-white/5", btn: "bg-white/5 text-white hover:bg-white/10", preview: "bg-slate-400"
+  },
+  vscode: { 
+    name: "VS Code 暗色", overlay: "bg-[#1e1e1e]/60", text: "text-[#cccccc]", accent: "bg-[#007acc] text-white", card: "bg-white/5 border-white/5 backdrop-blur-md", panel: "bg-[#1e1e1e] text-white", subtext: "text-[#666666]", border: "border-[#333]", btn: "bg-[#333333] text-[#ccc] hover:bg-[#444]", preview: "bg-[#007acc]"
+  },
+  office: { 
+    name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-800", accent: "bg-[#2b579a] text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-white text-slate-800", subtext: "text-slate-400 font-bold", border: "border-slate-50", btn: "bg-slate-50 text-slate-500 hover:bg-slate-100", preview: "bg-slate-300"
+  },
+  sakura: { 
+    name: "樱花粉", overlay: "bg-pink-100/10", text: "text-pink-900", accent: "bg-pink-400 text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-pink-50 text-pink-900", subtext: "text-pink-200 font-bold", border: "border-pink-50", btn: "bg-pink-50 text-pink-300 hover:bg-pink-100", preview: "bg-pink-400"
+  },
+  ocean: { 
+    name: "深海蓝", overlay: "bg-blue-900/20", text: "text-blue-50", accent: "bg-cyan-500 text-white", card: "bg-white/5 border-blue-400/10 backdrop-blur-2xl", panel: "bg-blue-950 text-white", subtext: "text-blue-400/40", border: "border-blue-800", btn: "bg-blue-800/40 text-blue-200 hover:bg-blue-700/40", preview: "bg-cyan-600"
+  },
+};
 
+const ENGINES = {
+  bing: { name: "必应", url: "https://www.bing.com/search?q=", iframeUrl: "https://www.bing.com/search?q=" },
+  google: { name: "谷歌", url: "https://www.google.com/search?q=", iframeUrl: "https://www.google.com/search?q=" },
+  baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
+};
+
+const springTransition = { type: "spring", stiffness: 450, damping: 25 };
+
+function SortableItem({ link, theme, onRemove }: { link: Link; theme: ThemeKey; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 2000 : 0 };
+  const themeData = THEMES[theme];
+  return (
+    <motion.div ref={setNodeRef} style={style} initial={false} whileHover={{ scale: 1.08, y: -4, zIndex: 100 }} whileTap={{ scale: 0.98 }} transition={springTransition} className={`group relative ${isDragging ? "opacity-0" : "opacity-100"}`}>
+      <div {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 rounded-[1.2rem] border transition-all cursor-move aspect-square w-full ${themeData.card} hover:border-white/40 shadow-xl overflow-hidden`}>
+        <a href={link.url} target="_blank" rel="noopener noreferrer" className="contents">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white/5 flex items-center justify-center shadow-sm border border-white/5 group-hover:bg-white/10 text-current font-bold">{link.name[0]}</div>
+          <span className={`text-[9px] sm:text-[10px] font-bold tracking-tight truncate w-full px-1 text-center leading-tight ${themeData.text}`}>{link.name}</span>
+        </a>
+      </div>
+      <button onClick={onRemove} className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all scale-75 hover:scale-100 shadow-xl z-[150]"><X size={10} strokeWidth={4} /></button>
+    </motion.div>
+  );
+}
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
+  const [linkModalData, setLinkModalData] = useState<{ catId: string; name: string; url: string }>({ catId: '', name: '', url: 'https://' });
+  const [newCatTitle, setNewCatTitle] = useState("");
   const [search, setSearch] = useState("");
+  const [engine, setEngine] = useState<"bing" | "google" | "baidu">("bing");
+  const [theme, setTheme] = useState<ThemeKey>("default");
   const [isPlaying, setIsPlaying] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   const [isMuted, setIsMuted] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [bgUrl, setBgUrl] = useState(DEFAULT_BG);
+  const [bgType, setBgType] = useState<"video" | "image">("video");
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const configInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        setIsPlaying(false);
-      });
-    }
+    setMounted(true);
+    const saved = localStorage.getItem("moyu-v22-low-opacity");
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        if (p.categories) { setCategories(p.categories); setSelectedCatId(p.categories[0]?.id || null); }
+        if (p.bgType) setBgType(p.bgType); if (p.theme) setTheme(p.theme);
+      } catch (e) {}
+    } else { setSelectedCatId(DEFAULT_CATEGORIES[0].id); }
+    const r = indexedDB.open("moyu-storage-db", 2);
+    r.onsuccess = (e: any) => {
+      const db = e.target.result; const tx = db.transaction(["assets"],"readonly");
+      tx.objectStore("assets").get("bg-blob").onsuccess = (ev: any) => { if (ev.target.result) setBgUrl(URL.createObjectURL(ev.target.result)); };
+    };
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(timer);
   }, []);
 
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+  useEffect(() => { if (mounted) localStorage.setItem("moyu-v22-low-opacity", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
+
+  const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
+  const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
+  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); };
+
+  const exportConfig = () => {
+    const d = JSON.stringify({ categories, theme, bgType }, null, 2); const b = new Blob([d], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "WEN_Backup.json"; a.click();
+  };
+
+  const handleDragStart = (e: DragStartEvent) => setActiveId(e.active.id as string);
+  const handleDragOver = (e: DragOverEvent) => {
+    const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return;
+    const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; };
+    const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return;
+    if (aC !== oC) {
+      setCategories(prev => {
+        const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC);
+        const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1);
+        if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); }
+        const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC;
+      });
+    } else {
+      setCategories(prev => {
+        const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI));
+        const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC;
+      });
     }
   };
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const [engine, setEngine] = useState<"bing" | "google" | "baidu">("bing");
-  const [isSearching, setIsSearching] = useState(false);
-
-  const engines = {
-    bing: { name: "必应", url: "https://www.bing.com/search?q=", iframeUrl: "https://www.bing.com/search?q=" },
-    google: { name: "谷歌", url: "https://www.google.com/search?q=", iframeUrl: "https://www.google.com/search?q=" },
-    baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
-  };
-
-  const handleSearch = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (search.trim()) {
-      setIsSearching(true);
-      // For Bing/Google/Baidu iframe may need special handling, but we try standard first
-      // Some engines block iframes, but Bing usually allows it with certain headers (sometimes needs &igu=1)
-    }
-  };
-
-  const closeSearch = () => {
-    setIsSearching(false);
-    setSearch("");
-  };
-
-
-  const filteredCategories = useMemo(() => {
-    if (!search.trim()) return categories;
-    return categories
-      .map((category) => ({
-        ...category,
-        links: category.links.filter((link) =>
-          link.name.toLowerCase().includes(search.toLowerCase())
-        ),
-      }))
-      .filter((category) => category.links.length > 0);
-  }, [search]);
+  const activeLinkData = useMemo(() => { if (!activeId) return null; for (const cat of categories) { const link = cat.links.find((l) => l.id === activeId); if (link) return link; } return null; }, [activeId, categories]);
+  const saveNewLink = () => { const { catId, name, url } = linkModalData; if (!name || !url) return; setCategories(prev => prev.map(cat => cat.id === catId ? { ...cat, links: [...cat.links, { id: `link-${Date.now()}`, name, url }] } : cat)); setIsLinkModalOpen(false); };
+  const saveNewCategory = () => { if (!newCatTitle.trim()) return; const nI = `cat-${Date.now()}`; setCategories([...categories, { id: nI, title: newCatTitle, links: [] }]); setSelectedCatId(nI); setNewCatTitle(""); setIsCatModalOpen(false); };
+  const selectedCategory = useMemo(() => categories.find(c => c.id === selectedCatId) || categories[0], [selectedCatId, categories]);
+  const currentTheme = THEMES[theme]; if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Video Background */}
-      <div className="fixed inset-0 z-0">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          src="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/40" />
+    <div className={`relative min-h-screen overflow-hidden font-['MaoKenZhuyuanTi'] transition-colors duration-500`}>
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <AnimatePresence mode="wait">
+          {bgType==='video' ? ( <motion.video key={bgUrl} ref={videoRef} className="w-full h-full object-cover" src={bgUrl} autoPlay muted loop playsInline /> ) : ( <motion.img key={bgUrl} src={bgUrl} className="w-full h-full object-cover" /> )}
+        </AnimatePresence>
+        <div className={`absolute inset-0 transition-colors duration-1000 ${currentTheme.overlay}`} />
       </div>
 
-      {/* Play/Pause Button - Top Right */}
-      <button
-        onClick={togglePlay}
-        className="fixed top-4 right-16 z-50 p-2 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all duration-300 sm:top-6 sm:right-20 sm:p-2.5"
-        aria-label={isPlaying ? "暂停" : "播放"}
-      >
-        {isPlaying ? (
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <rect x="6" y="4" width="4" height="16" rx="1" />
-            <rect x="14" y="4" width="4" height="16" rx="1" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        )}
-      </button>
-
-      {/* Mute Button - Top Right */}
-      <button
-        onClick={toggleMute}
-        className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all duration-300 sm:top-6 sm:right-6 sm:p-2.5"
-        aria-label={isMuted ? "开启声音" : "静音"}
-      >
-        {isMuted ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-          </svg>
-        )}
-      </button>
-
-      {/* Branding - Top Left */}
-      <div className="fixed top-4 left-4 z-[60] flex items-center gap-3 select-none sm:top-6 sm:left-6 animate-in slide-in-from-top-4 duration-700">
-        <img 
-          src="/logologo.png" 
-          alt="Logo" 
-          className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)] animate-float" 
-        />
-        <h1 className="text-lg sm:text-xl font-bold text-white drop-shadow-lg tracking-tight">
-          WEN Browser
-        </h1>
+      <div className="fixed top-6 right-6 z-[100] flex items-center gap-2">
+        <button onClick={()=>setIsDownloadOpen(true)} className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs">下载 WENBrowser</button>
+        <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5">
+          <button onClick={()=>setIsSettingsOpen(true)} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></button>
+          <button onClick={togglePlay} className="p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}</button>
+          <button onClick={toggleMute} className="p-2 text-white/30 hover:text-white transition-all">{isMuted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mt-12 sm:mt-16">
-        {/* Old Header removed, replaced with spacer if needed, but the Branding is now above */}
+      <div className="fixed top-6 left-6 z-[100] flex items-center gap-3">
+        <div className="w-10 h-10 p-2 bg-black/20 backdrop-blur-2xl rounded-xl border border-white/10 flex items-center justify-center text-white font-bold">W</div>
+        <h1 className={`text-xl font-bold tracking-tighter italic hidden sm:block ${currentTheme.text}`}>WENBrowser</h1>
+      </div>
 
-
-
-        {/* Search */}
-        <div className="mb-10 flex flex-col items-center gap-4">
-          <div className="flex bg-white/5 backdrop-blur-md rounded-lg p-1 border border-white/10">
-            {(Object.keys(engines) as Array<keyof typeof engines>).map((id) => (
-              <button
-                key={id}
-                onClick={() => setEngine(id)}
-                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-300 ${
-                  engine === id
-                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
-                    : "text-white/40 hover:text-white/70 hover:bg-white/5"
-                }`}
-              >
-                {engines[id].name}
-              </button>
-            ))}
+      <div className="relative z-10 max-w-[85rem] mx-auto px-6 py-10 mt-24 h-full overflow-y-auto pb-64 custom-scrollbar">
+        <div className="flex flex-col items-center gap-5 mb-24">
+          <div className="flex bg-white/5 backdrop-blur-2xl rounded-xl p-1 border border-white/10">
+            {Object.keys(ENGINES).map(id => ( <button key={id} onClick={()=>setEngine(id as any)} className={`px-6 py-1.5 rounded-lg text-[10px] font-bold transition-all ${engine===id?'bg-white text-black shadow-lg' : 'text-white/20 hover:text-white'}`}>{ENGINES[id as keyof typeof ENGINES].name}</button> ))}
           </div>
-
-          <form 
-            onSubmit={handleSearch}
-            className="relative group max-w-md w-full"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-500" />
-            <div className="relative flex items-center bg-black/30 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden">
-              <div className="pl-4 pr-2 py-3.5 border-r border-white/5 bg-white/5">
-                <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={`在 ${engines[engine].name} 中搜索...`}
-                className="w-full pl-3 pr-4 py-3.5 bg-transparent text-white placeholder-white/30 focus:outline-none text-sm"
-              />
-              {search.trim() && (
-                <button
-                  type="submit"
-                  className="mr-2 px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold transition-all duration-300 shadow-lg shadow-blue-500/20 animate-in fade-in slide-in-from-right-2"
-                >
-                  搜索
-                </button>
-              )}
+          <form onSubmit={handleSearch} className="w-full max-w-lg">
+            <div className={`flex items-center bg-white/5 backdrop-blur-[32px] rounded-2xl border border-white/20 px-8 py-0.5 focus-within:bg-white/10 focus-within:border-white/40 transition-all shadow-xl`}>
+              <Search size={20} className="text-white/20 mr-4" />
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={`搜索灵感...`} className={`flex-1 py-4 bg-transparent text-sm focus:outline-none font-bold placeholder-white/10 ${currentTheme.text}`} />
             </div>
           </form>
         </div>
 
-
-        {/* Content Section */}
-        <main className="space-y-8 min-h-[60vh] flex flex-col">
-          {isSearching ? (
-            <div className="flex-1 w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-500">
-              <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-medium text-white/50 tracking-wider">
-                    正在展示 {engines[engine].name} 搜索结果
-                  </span>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={()=>{setActiveId(null);}}>
+          <main className="space-y-20">
+            {categories.map((c) => (
+              <section key={c.id}>
+                <div className="flex items-center gap-5 mb-8 px-2">
+                   <h2 className={`text-[11px] font-bold tracking-[0.5em] uppercase opacity-40 ${currentTheme.text}`}>{c.title}</h2>
+                   <div className="h-[1px] flex-1 bg-white/5" />
                 </div>
-                <button 
-                  onClick={closeSearch}
-                  className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-all duration-300 border border-white/10"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  返回导航
-                </button>
-              </div>
-              <div className="flex-1 bg-white relative min-h-[70vh]">
-                <iframe 
-                  src={`${engines[engine].iframeUrl}${encodeURIComponent(search)}${engine === 'bing' ? '&igu=1' : ''}`}
-                  className="w-full h-full absolute inset-0"
-                  title="Search Results"
-                  frameBorder="0"
-                />
-              </div>
-            </div>
-          ) : (
-            filteredCategories.map((category) => (
-              <section key={category.title} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4 ml-1">
-                  {category.title}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {category.links.map((link, idx) => (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group"
-                      style={{ animationDelay: `${idx * 50}ms` }}
-                    >
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 hover:border-white/20 transition-all duration-300 hover:scale-[1.02]">
-                        <div className="text-white/60 group-hover:text-blue-300 transition-colors duration-300">
-                          {link.icon}
-                        </div>
-                        <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300 truncate">
-                          {link.name}
-                        </span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
+                <SortableContext items={c.links.map(l=>l.id)} strategy={rectSortingStrategy}>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3.5 sm:gap-4 lg:gap-5">
+                    {c.links.map((l) => ( <SortableItem key={l.id} link={l} theme={theme} onRemove={()=>{setCategories(prev=>prev.map(cat=>({...cat,links:cat.links.filter(li=>li.id!==l.id)})))}} /> ))}
+                    <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`flex items-center justify-center rounded-[1.2rem] border border-dashed border-white/10 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={22} strokeWidth={2} /></motion.button>
+                  </div>
+                </SortableContext>
               </section>
-            ))
-          )}
-        </main>
-
-
-
-        {/* Footer */}
-        <footer className="mt-16 pt-6 border-t border-white/10">
-          <p className="text-xs text-white/40 text-center">
-            Browser Navigation
-          </p>
-        </footer>
+            ))}
+          </main>
+          <DragOverlay dropAnimation={null}>
+            {activeId && activeLinkData ? ( <div className={`p-2.5 rounded-[1.2rem] border shadow-2xl scale-110 w-[78px] aspect-square flex flex-col items-center justify-center pointer-events-none ${currentTheme.card}`}><div className="w-9 h-9 mb-1.5 rounded-[0.8rem] bg-black/10 flex items-center justify-center text-current font-bold">{activeLinkData.name[0]}</div><span className={`text-[10px] font-bold truncate w-full px-1 text-center ${currentTheme.text}`}>{activeLinkData.name}</span></div> ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
+
+      <AnimatePresence>
+        {isLinkModalOpen && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsLinkModalOpen(false)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
+             <motion.div initial={{opacity:0, scale: 0.9}} animate={{opacity:1, scale: 1}} exit={{opacity:0, scale: 0.9}} className={`relative ${currentTheme.panel} border border-white/10 rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl`}><div className="px-8 py-8 border-b border-white/5 flex items-center gap-3"><div className="p-2 bg-white/5 rounded-lg"><Plus size={16} className="opacity-30"/></div><div><h3 className="font-bold text-lg leading-none">添加导航节点</h3><p className="text-[9px] opacity-20 uppercase tracking-widest mt-1">New Shortcut node</p></div></div><div className="p-8 space-y-6"><div className="space-y-4"><div className="space-y-1.5"><label className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] pl-1">名称 / LABEL</label><input autoFocus value={linkModalData.name} onChange={e=>setLinkModalData(p=>({...p, name: e.target.value}))} onKeyDown={e=>e.key==='Enter'&&saveNewLink()} placeholder="网站名称" className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-white/20 transition-all" /></div><div className="space-y-1.5"><label className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] pl-1">链接 / URL</label><input value={linkModalData.url} onChange={e=>setLinkModalData(p=>({...p, url: e.target.value}))} onKeyDown={e=>e.key==='Enter'&&saveNewLink()} placeholder="https://" className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-white/20 transition-all" /></div></div><div className="grid grid-cols-2 gap-3 pt-2"><button onClick={()=>setIsLinkModalOpen(false)} className="py-4 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold hover:bg-white/10 transition-all">取消退出</button><button onClick={saveNewLink} className="py-4 bg-white text-black rounded-xl text-[11px] font-bold shadow-xl active:scale-95 transition-all">保存节点</button></div></div></motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isCatModalOpen && (
+           <div className="fixed inset-0 z-[305] flex items-center justify-center p-4">
+              <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsCatModalOpen(false)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
+              <motion.div initial={{opacity:0, scale: 0.9}} animate={{opacity:1, scale: 1}} exit={{opacity:0, scale: 0.9}} className={`relative ${currentTheme.panel} border border-white/10 rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl`}><div className="px-8 py-8 border-b border-white/5 flex items-center gap-3"><div className="p-2 bg-white/5 rounded-lg"><FolderPlus size={16} className="opacity-30"/></div><div><h3 className="font-bold text-lg leading-none">新建分类层</h3><p className="text-[9px] opacity-20 uppercase tracking-widest mt-1">Add Module Cluster</p></div></div><div className="p-8 space-y-6"><div className="space-y-2"><label className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] pl-1">分类名称 / CLUSTER TITLE</label><input autoFocus value={newCatTitle} onChange={e=>setNewCatTitle(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveNewCategory()} placeholder="例如：娱乐天地" className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-white/20 transition-all" /></div><div className="grid grid-cols-2 gap-3 pt-2"><button onClick={()=>setIsCatModalOpen(false)} className="py-4 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold hover:bg-white/10 transition-all">放弃操作</button><button onClick={saveNewCategory} className="py-4 bg-white text-black rounded-xl text-[11px] font-bold shadow-xl active:scale-95 transition-all">立即创建</button></div></div></motion.div>
+           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsSettingsOpen(false)} className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+            <motion.div initial={{opacity:0, scale: 0.98}} animate={{opacity:1, scale: 1}} exit={{opacity:0, scale: 0.98}} className={`relative ${currentTheme.panel} border border-white/10 rounded-[1.8rem] w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl overflow-hidden`}>
+               <div className="px-8 py-6 flex items-center justify-between border-b border-white/5">
+                  <div className="flex items-center gap-4"><div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10"><Shield size={20} className="opacity-30" /></div><div><h3 className="text-lg font-bold">WEN 控制面板</h3><p className="text-[9px] opacity-20 uppercase tracking-widest mt-0.5">Configuration System</p></div></div>
+                  <button onClick={()=>setIsSettingsOpen(false)} className="p-2 text-white/20 hover:text-white transition-all"><X size={22}/></button>
+               </div>
+               
+               <div className="flex-1 overflow-hidden flex">
+                  <div className="w-[280px] border-r border-white/5 flex flex-col bg-black/20">
+                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-12">
+                        <section>
+                           <div className="flex items-center justify-between mb-4">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 flex items-center gap-2"><Palette size={12}/> 视觉主题 / THEMES</label>
+                              <span className="text-[10px] font-bold opacity-30 italic">{THEMES[theme].name}</span>
+                           </div>
+                           <div className="flex items-center justify-between gap-1.5 px-0.5">
+                              {(Object.keys(THEMES) as ThemeKey[]).map(key => (
+                                 <button key={key} onClick={() => setTheme(key)} title={THEMES[key].name} className={`group relative flex-1 aspect-square rounded-lg border transition-all flex items-center justify-center overflow-hidden h-9 ${theme === key ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-white/5 hover:border-white/20 hover:scale-105'}`}>
+                                    <div className={`absolute inset-0 ${THEMES[key].preview} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                                    {theme === key && <Check size={14} className="relative z-10 text-white drop-shadow-md" />}
+                                 </button>
+                              ))}
+                           </div>
+                        </section>
+                        <section>
+                           <div className="flex items-center justify-between mb-6">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 flex items-center gap-2"><Layers size={12}/> 分类管理 / CLUSTERS</label>
+                              <button onClick={()=>setIsCatModalOpen(true)} className="p-1.5 hover:bg-white/10 rounded-lg opacity-30 hover:opacity-100 transition-all"><Plus size={14}/></button>
+                           </div>
+                           <div className="flex flex-col gap-1">
+                              {categories.map((c) => ( <button key={c.id} onClick={() => setSelectedCatId(c.id)} className={`group p-3 rounded-xl flex items-center justify-between transition-all ${selectedCatId === c.id ? 'bg-white/10 text-white border border-white/10' : 'text-white/20 hover:text-white hover:bg-white/5'}`}><div className="flex items-center gap-3 overflow-hidden"><Hash size={12} className={selectedCatId === c.id ? 'text-primary' : 'opacity-20'} /><span className="text-[11px] font-bold truncate">{c.title}</span></div>{selectedCatId === c.id && <ChevronRight size={14} className="opacity-40" />}</button> ))}
+                           </div>
+                        </section>
+                        <section>
+                           <label className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 mb-6 flex items-center gap-2"><ImageIcon size={12}/> 壁纸背景 / WALLPAPER</label>
+                           <div className="space-y-2">
+                             <button onClick={()=>fileInputRef.current?.click()} className="w-full p-4 bg-white/5 border border-white/5 rounded-xl text-[11px] font-bold text-white/60 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2">本地资源上传</button>
+                             <button onClick={()=>{setBgUrl(DEFAULT_BG); setBgType('video'); }} className="w-full p-4 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-white/20 hover:text-white/60 transition-all flex items-center justify-center gap-2"><RefreshCw size={12}/> 还原官方默认</button>
+                           </div>
+                        </section>
+                     </div>
+                  </div>
+                  <div className="flex-1 flex flex-col bg-black/10 overflow-hidden">
+                    {selectedCategory ? (
+                       <>
+                        <div className="px-10 py-8 border-b border-white/5 bg-white/2 flex items-center justify-between"><div className="flex items-center gap-6"><div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-lg font-bold opacity-30 italic">{categories.findIndex(c => c.id === selectedCategory.id) + 1}</div><div><input value={selectedCategory.title} onChange={(e)=>{ const n=[...categories]; const i=n.findIndex(x=>x.id===selectedCategory.id); n[i].title=e.target.value; setCategories(n); }} className="bg-transparent font-bold text-2xl focus:outline-none w-full" /><p className="text-[9px] opacity-20 uppercase tracking-[0.4em] mt-1 font-bold">Category Instance Identifier</p></div></div><button onClick={()=>{if(confirm("确定永久移除此分类模块？")) { const n=categories.filter(x=>x.id!==selectedCategory.id); setCategories(n); if(n.length) setSelectedCatId(n[0].id); else setSelectedCatId(null); }}} className="p-3 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest group"><Trash2 size={16} className="opacity-40 group-hover:opacity-100" /> 删除分类</button></div>
+                        <div className="flex-1 p-10 overflow-y-auto custom-scrollbar space-y-8">
+                           <div className="grid grid-cols-1 gap-4"><div className="flex items-center gap-3 px-6 opacity-20 mb-2"><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-1">节点名称 / LABEL</span><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-[2]">目标地址 / URL</span><div className="w-8" /></div>
+                              {selectedCategory.links.map((l, lIdx) => ( <motion.div initial={{opacity:0, scale: 0.98}} animate={{opacity:1, scale: 1}} key={l.id} className="flex gap-4 bg-white/5 p-5 rounded-[1.6rem] items-center border border-white/5 hover:border-white/10 group/cell transition-all"><div className="p-2.5 bg-white/5 rounded-xl"><Globe size={14} className="opacity-20"/></div><input value={l.name} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCategory.id); n[ci].links[lIdx].name=e.target.value; setCategories(n);}} className="bg-transparent text-sm font-bold w-44 focus:outline-none" /><input value={l.url} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCategory.id); n[ci].links[lIdx].url=e.target.value; setCategories(n);}} className="bg-transparent text-[11px] flex-1 opacity-20 focus:opacity-100 transition-opacity truncate focus:outline-none" /><button onClick={()=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCategory.id); n[ci].links.splice(lIdx,1); setCategories(n);}} className="text-red-500 opacity-0 group-hover/cell:opacity-100 p-2 hover:bg-red-500/10 rounded-xl transition-all"><X size={16}/></button></motion.div> ))}
+                              <button onClick={()=> { setLinkModalData({ catId: selectedCategory.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className="w-full py-6 border-2 border-dashed border-white/5 rounded-[1.6rem] flex items-center justify-center gap-3 text-[11px] font-bold opacity-20 hover:opacity-100 hover:bg-white/5 hover:border-white/10 transition-all mt-4"><Plus size={18}/> APPEND NEW NODE IN "{selectedCategory.title}"</button>
+                           </div>
+                        </div>
+                       </>
+                    ) : ( <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20 p-20"><Layers size={64} className="mb-6" /><h4 className="text-xl font-bold">请选择或创建一个分类</h4><p className="text-xs mt-2 tracking-widest uppercase">Start managing your workspace modules</p></div> )}
+                  </div>
+               </div>
+               <div className="p-6 border-t border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl">
+                  <div className="flex gap-4"><button onClick={exportConfig} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Share2 size={18}/></button><button onClick={()=>configInputRef.current?.click()} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Upload size={18}/></button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.12-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <input type="file" ref={fileInputRef} className="hidden" accept="video/*,image/*" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const t = f.type.startsWith('video')?'video':'image'; setBgType(t); setBgUrl(URL.createObjectURL(f)); const req = indexedDB.open("moyu-storage-db", 2); req.onsuccess=(ev:any)=>ev.target.result.transaction(["assets"],"readwrite").objectStore("assets").put(f,"bg-blob"); } }} />
+      <input type="file" ref={configInputRef} className="hidden" accept=".json" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const r = new FileReader(); r.onload=(ev)=>{ try { const p = JSON.parse(ev.target?.result as string); if(p.categories){setCategories(p.categories); setSelectedCatId(p.categories[0]?.id); alert("导入成功"); } }catch(err){alert("文件无效");} }; r.readAsText(f); } }} />
+
+      <AnimatePresence>
+        {isDownloadOpen && ( <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[250] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center"><div className="max-w-4xl mx-auto w-full p-20 relative text-center"><button onClick={()=>setIsDownloadOpen(false)} className="absolute top-0 right-0 p-8 text-white/20 hover:text-white transition-all"><X size={48}/></button><img src="/logologo.png" className="w-20 h-20 mx-auto mb-12" alt="Logo" /><h1 className="text-6xl font-black text-white mb-6">WENBrowser</h1><a href="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/MoyuBrowser_Setup.exe" className="inline-flex items-center gap-6 px-16 py-5 bg-white text-black text-xl font-black rounded-xl shadow-2xl transition-all">极速本地获取</a></div></motion.div> )}
+      </AnimatePresence>
     </div>
   );
 }
