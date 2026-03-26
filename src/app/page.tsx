@@ -22,7 +22,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Monitor, Palette, Upload, Share2, Globe, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon } from "lucide-react";
+import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Palette, Upload, Share2, Globe, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon, Download } from "lucide-react";
+import Link from "next/link";
 
 interface Link {
   id: string;
@@ -88,7 +89,6 @@ const ENGINES = {
   baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
 };
 
-// FIXED: Added 'as const' to fix TypeScript inference error on Vercel build
 const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 };
 
 function SortableItem({ link, theme, onRemove }: { link: Link; theme: ThemeKey; onRemove: () => void }) {
@@ -110,7 +110,6 @@ function SortableItem({ link, theme, onRemove }: { link: Link; theme: ThemeKey; 
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -136,7 +135,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("moyu-v23-build-fix");
+    const saved = localStorage.getItem("moyu-v25-final");
     if (saved) {
       try {
         const p = JSON.parse(saved);
@@ -152,7 +151,7 @@ export default function Home() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => { if (mounted) localStorage.setItem("moyu-v23-build-fix", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
+  useEffect(() => { if (mounted) localStorage.setItem("moyu-v25-final", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
 
   const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
   const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
@@ -199,7 +198,9 @@ export default function Home() {
       </div>
 
       <div className="fixed top-6 right-6 z-[100] flex items-center gap-2">
-        <button onClick={()=>setIsDownloadOpen(true)} className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs">下载 WENBrowser</button>
+        <Link href="/download" className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+           <Download size={14} /> 获取桌面增强版
+        </Link>
         <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5">
           <button onClick={()=>setIsSettingsOpen(true)} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></button>
           <button onClick={togglePlay} className="p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}</button>
@@ -248,6 +249,7 @@ export default function Home() {
         </DndContext>
       </div>
 
+      {/* CUSTOM MODALS */}
       <AnimatePresence>
         {isLinkModalOpen && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
@@ -326,7 +328,7 @@ export default function Home() {
                </div>
                <div className="p-6 border-t border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl">
                   <div className="flex gap-4"><button onClick={exportConfig} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Share2 size={18}/></button><button onClick={()=>configInputRef.current?.click()} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Upload size={18}/></button></div>
-                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.13-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.15-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
                </div>
             </motion.div>
           </div>
@@ -335,10 +337,6 @@ export default function Home() {
 
       <input type="file" ref={fileInputRef} className="hidden" accept="video/*,image/*" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const t = f.type.startsWith('video')?'video':'image'; setBgType(t); setBgUrl(URL.createObjectURL(f)); const req = indexedDB.open("moyu-storage-db", 2); req.onsuccess=(ev:any)=>ev.target.result.transaction(["assets"],"readwrite").objectStore("assets").put(f,"bg-blob"); } }} />
       <input type="file" ref={configInputRef} className="hidden" accept=".json" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const r = new FileReader(); r.onload=(ev)=>{ try { const p = JSON.parse(ev.target?.result as string); if(p.categories){setCategories(p.categories); setSelectedCatId(p.categories[0]?.id); alert("导入成功"); } }catch(err){alert("文件无效");} }; r.readAsText(f); } }} />
-
-      <AnimatePresence>
-        {isDownloadOpen && ( <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[250] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center"><div className="max-w-4xl mx-auto w-full p-20 relative text-center"><button onClick={()=>setIsDownloadOpen(false)} className="absolute top-0 right-0 p-8 text-white/20 hover:text-white transition-all"><X size={48}/></button><img src="/logologo.png" className="w-20 h-20 mx-auto mb-12" alt="Logo" /><h1 className="text-6xl font-black text-white mb-6">WENBrowser</h1><a href="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/MoyuBrowser_Setup.exe" className="inline-flex items-center gap-6 px-16 py-5 bg-white text-black text-xl font-black rounded-xl shadow-2xl transition-all">极速本地获取</a></div></motion.div> )}
-      </AnimatePresence>
     </div>
   );
 }

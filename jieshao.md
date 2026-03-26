@@ -1,69 +1,84 @@
-# 🌊 MoyuBrowser (摸鱼浏览器) 项目实训报告及工程导览
+# 🌊 MoyuBrowser (摸鱼浏览器) 
 
-![MoyuBrowser Logo](assets/logo.png)
+<p align="center">
+  <img src="assets/logo.png" width="128" height="128" />
+</p>
 
-> **为高效办公而生，让灵感在隐秘中自由流淌。**
-> **工程定位**：面向专业办公环境的隐匿增强型网页浏览器。
-> **技术栈**：.NET 8.0, WinForms, Microsoft WebView2 (Chromium Engine), Win32 API Interop (P/Invoke).
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-8.0-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Platform-Windows-lightgrey?style=flat-square" />
+  <img src="https://img.shields.io/badge/Engine-WebView2-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" />
+</p>
 
 ---
 
-## 1. 📂 项目架构与模块化设计
+## 🏗️ 项目简介 (Description)
+**MoyuBrowser** 是一款深度定制的办公隐匿型浏览器。它基于 **Microsoft Edge WebView2 (Chromium)** 内核，融合了多项针对职场环境设计的“隐匿防御”技术，为您在忙碌的商务办公中提供一个私密、高效且极具安全感的个人灵感空间。
 
-本项目采用基于 **.NET 8.0** 的高性能桌面框架开发，结构清晰，职责分离：
-- **MoyuBrowser.Core**：核心逻辑层。管理字体配置 (`FontManager`)、全局设置存储 (`SettingsManager`) 以及基于动态色彩代理的主题引擎 (`ThemeManager`)。
-- **MoyuBrowser.UI**：用户交互层。
-    - `Forms`: 包含主窗体以及自定义的隐匿基类 `MoyuBaseForm`（实现了无边框窗口拖拽与边缘缩放）。
-    - `Controls`: 容纳自定义组件。
-- **WebView2 适配层**：负责高性能网页渲染与跨域资源的虚拟映射。
+> **核心哲学**：Work Hard, Moyu Harder. 让专注回归本质，让放松不留痕迹。
 
-## 2. 🛡️ 核心隐秘技术 (The Stealth Engine)
+---
 
-本项实训的核心在于针对办公环境深度优化的“三段式”防御体系：
+## 🛠️ 三段式防御引擎 (The Stealth Engine)
 
-- **🚀 全局老板键 (Boss Key)**：
-  - **实现逻辑**：利用 Win32 `RegisterHotKey` 注册全局热键（`Alt + B` / `Alt + Space`）。
-  - **效果**：瞬间剥离任务栏图标并将窗口完全隐藏，进入进程级静默状态，仅保留极其隐蔽的系统托盘钩子。
-- **🌓 智能焦点淡化 (Focus-Stealth)**：
-  - **逻辑**：监控 `GetForegroundWindow` 与鼠标位置。
-  - **效果**：当检测到用户切换到其他办公软件或鼠标移出时，浏览器会自动进入“影子模式”，将透明度瞬间平滑调节至 `0.15`。
-- **📜 身份伪装 (Title Spoofing)**：
-  - **功能**：一键将窗口标题由“浏览器”切换为“财务审计报告草案.docx”或“代码重构计划.json”，通过视觉错觉降低敏感度。
+本项目实训的核心是通过深度整合 **Win32 API** 实现的底层隐匿逻辑：
 
-## 3. 🎨 动态视觉引擎 (The Theme Hub)
+<details>
+<summary><b>1. 🚀 全局老板键 (Universal Boss Key)</b></summary>
+利用 <code>RegisterHotKey</code> 注册系统级钩子（<code>Alt + B</code> / <code>Alt + Space</code>）。瞬间剥离任务栏图标并移除主窗口视觉句柄，进入进程级“伪休眠”状态，完美应对紧急查岗。
+</details>
 
-我们构建了一套可扩展的主题代理系统，解决了 WinForms 控件样式碎片化的问题：
+<details>
+<summary><b>2. 🌓 智能焦点淡化 (Focus-Dynamic Stealth)</b></summary>
+实时监控窗口焦点状态。当鼠标移出或失去焦点超过 200ms 时，窗体透明度将由 1.0 平滑过渡至极低数值（默认 0.15），与桌面背景完美共生。
+</details>
 
-- **五大预设主题**：经典黑、VS Code 暗色、Office 简约白、极简透明、以及实训新增的**樱花粉 (Sakura Pink)**。
-- **统一配色令牌 (Theme Tokens)**：引入了 `InputBg`, `HoverColor`, `TabActive` 等高级属性，实现了从地址栏到按钮悬停反馈的全链路动态适配。
-- **冷静模式 (Global Greyscale)**：通过向 WebView2 注入 `html { filter: grayscale(100%) }` 的 CSS 脚本，实现网页内容的全局黑白化，降低浏览内容在周边视野中的识别度。
+<details>
+<summary><b>3. 📜 身份伪装 (Contextual Identity Spoofing)</b></summary>
+内置动态标题注入器。允许用户一键将窗口标题注入为 <code>财务审计报告.docx</code>, <code>项目进度计划.xlsx</code> 或 <code>系统架构图.vsdx</code> 等常见办公文件，实现视觉层面的全链路伪装。
+</details>
 
-## 4. 🌐 现代化浏览体验
+---
 
-- **Chromium 内核驱动**：采用业界领先的 WebView2 核心，提供 100% 的现代网页标准支持。
-- **标签页强控系统**：自主实现多标签 UI 逻辑，强制拦截所有外部弹出窗口并归档至内嵌标签页，确保办公桌面的纯净度。
-- **虚拟资源映射**：通过 `SetVirtualHostNameToFolderMapping` 解决自载字体在 WebView2 防沙箱机制下的应用难题。
+## 🎨 动态视觉 Hub & 色彩引擎
 
-## 5. ⌨️ 专家级快捷键参考
+我们设计了一套**统一色彩令牌系统**，通过动态属性代理解决了界面各元素间风格撕裂的问题：
 
-| 功能 | 键位 | 说明 |
+- **🌸 樱花粉 (Sakura Pink)**：实训新增的现代极简主题，采用低饱和度莫兰迪粉，赋予技术软件少有的温润感。
+- **🌑 专家级暗色模式**：深度适配 VS Code 暗色风格，支持多级悬停反馈与输入区域色彩自适应。
+- **🌫️ 极简透明模式**：配合原生毛玻璃效果与动态透明度调节，呈现极具现代感的交互体验。
+- **🕶️ 冷静模式 (Global Greyscale)**：基于 Runtime CSS Injection 技术，对网页层及 UI 层进行全局去色，使浏览内容回归纯粹，告别繁杂的色彩干扰。
+
+---
+
+## ⌨️ 专家级快捷键参考
+
+| 动作 | 键位 | 预期效果 |
 | :--- | :--- | :--- |
-| **瞬间隐身 (Boss)** | `Alt + B` / `Alt + Space` | 瞬间隐藏主窗体及其任务栏标识 |
-| **自选透明度** | `Alt + ↑` / `Alt + ↓` | 动态增加/减少窗口透明度 (10%-100%) |
-| **极速建签** | `Alt + T` | 毫秒级打开新标签页 |
-| **快速关签** | `Alt + W` | 快速销毁当前活跃标签 |
-| **快速最小化** | `Alt + Q` | 最小化至系统通知区域 |
-
-## 6. ⚙️ 构建与分发 (Deployment)
-
-- **📦 便携化部署**：支持 `Single-file` 发布，已将所有 .NET 运行时依赖整合为单一 `MoyuBrowser.exe`。
-- **🛠️ 自动化安装**：内置 `Install.ps1` 脚本，可快速实现 LocalAppData 部署与桌面快捷方式自动生成。
-- **📜 专业级脚本**：提供 `MoyuBrowser.iss` 脚本，配合 Inno Setup 可一键生成带有品牌图标的正式安装程序。
+| **瞬间隐身** | `Alt + B` / `Alt + Space` | 瞬间隐藏主窗体及其任务栏标识 |
+| **动态亮度** | `Alt + ↑` / `Alt + ↓` | 阶梯式 (10%) 调节主窗体不透明度 |
+| **标签管理** | `Alt + T` / `Alt + W` | 快速增减浏览标签页 |
+| **极速最小化** | `Alt + Q` | 瞬间收缩至系统托盘，仅保留后台服务 |
 
 ---
 
-> **实训总结**：
-> 本次实训不仅仅是开发一款浏览器，更是对 **Win32 低级 API 调用**、**WebView2 高级特性应用** 以及 **极致 UI 状态管理** 的深度实践。MoyuBrowser 展示了如何通过软件工程手段，在办公效率与个人隐私空间之间寻找完美的平衡。
+## 📦 构建与离线部署
+
+项目已实现高度工程化，支持多场景发布交付：
+
+```bash
+# 生成单文件绿色便携版 (Single-file Release)
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
+```
+
+- **[MoyuBrowser.iss](MoyuBrowser.iss)**: 标准 Inno Setup 脚本，用于生成带图标的安装程序。
+- **[Install.ps1](Install.ps1)**: PowerShell 一键自动化部署脚本，适用于内网快速分发。
+
+---
+
+> **实训总结 (Reflection)**：
+> MoyuBrowser 的开发不仅是对 **C# 12.0** 与 **.NET 8** 特性的实战验证，更是对底层操作系统交互逻辑与现代 Web 容器技术的深度融合尝试。它向我们展示了如何通过优秀的 UI 交互设计与底层逻辑封装，平衡个人隐私保护与职业环境适配。
 
 ---
 
