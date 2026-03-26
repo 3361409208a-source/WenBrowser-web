@@ -11,8 +11,7 @@ import {
   DragOverlay,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
-  defaultDropAnimationSideEffects
+  DragOverEvent
 } from "@dnd-kit/core";
 import { 
   arrayMove, 
@@ -23,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Zap, Monitor, Palette, Download, Upload, Share2, Database, Clock, LayoutGrid, Globe, Terminal, Info, Edit3, Link2, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon } from "lucide-react";
+import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Monitor, Palette, Upload, Share2, Globe, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon } from "lucide-react";
 
 interface Link {
   id: string;
@@ -73,7 +72,7 @@ const THEMES: Record<ThemeKey, { name: string; overlay: string; text: string; ac
     name: "VS Code 暗色", overlay: "bg-[#1e1e1e]/60", text: "text-[#cccccc]", accent: "bg-[#007acc] text-white", card: "bg-white/5 border-white/5 backdrop-blur-md", panel: "bg-[#1e1e1e] text-white", subtext: "text-[#666666]", border: "border-[#333]", btn: "bg-[#333333] text-[#ccc] hover:bg-[#444]", preview: "bg-[#007acc]"
   },
   office: { 
-    name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-800", accent: "bg-[#2b579a] text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-white text-slate-800", subtext: "text-slate-400 font-bold", border: "border-slate-50", btn: "bg-slate-50 text-slate-500 hover:bg-slate-100", preview: "bg-slate-300"
+    name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-800", accent: "bg-[#2b579a] text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-white text-slate-800", subtext: "text-slate-400 font-bold", border: "border-slate-50", btn: "bg-slate-50 text-slate-500 hover:bg-slate-100", preview: "bg-slate-200"
   },
   sakura: { 
     name: "樱花粉", overlay: "bg-pink-100/10", text: "text-pink-900", accent: "bg-pink-400 text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-pink-50 text-pink-900", subtext: "text-pink-200 font-bold", border: "border-pink-50", btn: "bg-pink-50 text-pink-300 hover:bg-pink-100", preview: "bg-pink-400"
@@ -89,7 +88,8 @@ const ENGINES = {
   baidu: { name: "百度", url: "https://www.baidu.com/s?wd=", iframeUrl: "https://www.baidu.com/s?wd=" },
 };
 
-const springTransition = { type: "spring", stiffness: 450, damping: 25 };
+// FIXED: Added 'as const' to fix TypeScript inference error on Vercel build
+const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 };
 
 function SortableItem({ link, theme, onRemove }: { link: Link; theme: ThemeKey; onRemove: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
@@ -136,7 +136,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("moyu-v22-low-opacity");
+    const saved = localStorage.getItem("moyu-v23-build-fix");
     if (saved) {
       try {
         const p = JSON.parse(saved);
@@ -152,7 +152,7 @@ export default function Home() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000); return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => { if (mounted) localStorage.setItem("moyu-v22-low-opacity", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
+  useEffect(() => { if (mounted) localStorage.setItem("moyu-v23-build-fix", JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
 
   const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
   const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
@@ -326,7 +326,7 @@ export default function Home() {
                </div>
                <div className="p-6 border-t border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl">
                   <div className="flex gap-4"><button onClick={exportConfig} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Share2 size={18}/></button><button onClick={()=>configInputRef.current?.click()} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Upload size={18}/></button></div>
-                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.12-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.13-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
                </div>
             </motion.div>
           </div>
