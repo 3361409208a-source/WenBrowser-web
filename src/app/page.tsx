@@ -68,19 +68,19 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 const THEMES: Record<ThemeKey, { name: string; overlay: string; text: string; accent: string; card: string; panel: string; btn: string; subtext: string; border: string; preview: string }> = {
   default: { 
-    name: "极客毛玻璃", overlay: "bg-black/40", text: "text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]", accent: "bg-white text-black", card: "bg-white/5 border-white/10 backdrop-blur-2xl", panel: "bg-slate-950/95 text-white", subtext: "text-white/30", border: "border-white/5", btn: "bg-white/5 text-white hover:bg-white/10", preview: "bg-slate-400"
+    name: "极客毛玻璃", overlay: "bg-black/40", text: "text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]", accent: "bg-white text-black", card: "bg-white/5 border-white/10", panel: "bg-slate-950/95 text-white", subtext: "text-white/30", border: "border-white/5", btn: "bg-white/5 text-white hover:bg-white/10", preview: "bg-slate-400"
   },
   vscode: { 
-    name: "VS Code 暗色", overlay: "bg-[#1e1e1e]/60", text: "text-[#cccccc]", accent: "bg-[#007acc] text-white", card: "bg-white/5 border-white/5 backdrop-blur-md", panel: "bg-[#1e1e1e] text-white", subtext: "text-[#666666]", border: "border-[#333]", btn: "bg-[#333333] text-[#ccc] hover:bg-[#444]", preview: "bg-[#007acc]"
+    name: "VS Code 暗色", overlay: "bg-[#1e1e1e]/60", text: "text-[#cccccc]", accent: "bg-[#007acc] text-white", card: "bg-white/5 border-white/5", panel: "bg-[#1e1e1e] text-white", subtext: "text-[#666666]", border: "border-[#333]", btn: "bg-[#333333] text-[#ccc] hover:bg-[#444]", preview: "bg-[#007acc]"
   },
   office: { 
-    name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-800", accent: "bg-[#2b579a] text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-white text-slate-800", subtext: "text-slate-400 font-bold", border: "border-slate-50", btn: "bg-slate-50 text-slate-500 hover:bg-slate-100", preview: "bg-slate-200"
+    name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-800 font-black", accent: "bg-[#2b579a] text-white", card: "bg-slate-950/10 border-slate-950/30 shadow-2xl", panel: "bg-white text-slate-800", subtext: "text-slate-400 font-bold", border: "border-slate-300", btn: "bg-slate-100 text-slate-600 hover:bg-slate-200", preview: "bg-slate-200"
   },
   sakura: { 
-    name: "樱花粉", overlay: "bg-pink-100/10", text: "text-pink-900", accent: "bg-pink-400 text-white", card: "bg-white/10 border-white/20 backdrop-blur-xl shadow-lg", panel: "bg-pink-50 text-pink-900", subtext: "text-pink-200 font-bold", border: "border-pink-50", btn: "bg-pink-50 text-pink-300 hover:bg-pink-100", preview: "bg-pink-400"
+    name: "樱花粉", overlay: "bg-pink-100/10", text: "text-pink-900 font-bold", accent: "bg-pink-400 text-white", card: "bg-white/20 border-white/30 shadow-xl", panel: "bg-pink-50 text-pink-900", subtext: "text-pink-200 font-bold", border: "border-pink-200", btn: "bg-pink-50 text-pink-500 hover:bg-pink-100", preview: "bg-pink-400"
   },
   ocean: { 
-    name: "深海蓝", overlay: "bg-blue-900/20", text: "text-blue-50", accent: "bg-cyan-500 text-white", card: "bg-white/5 border-blue-400/10 backdrop-blur-2xl", panel: "bg-blue-950 text-white", subtext: "text-blue-400/40", border: "border-blue-800", btn: "bg-blue-800/40 text-blue-200 hover:bg-blue-700/40", preview: "bg-cyan-600"
+    name: "深海蓝", overlay: "bg-blue-900/20", text: "text-blue-50 font-bold", accent: "bg-cyan-500 text-white", card: "bg-white/10 border-blue-400/30 shadow-xl", panel: "bg-blue-950 text-white", subtext: "text-blue-400/40", border: "border-blue-800", btn: "bg-blue-800/60 text-blue-100 hover:bg-blue-700/60", preview: "bg-cyan-600"
   },
 };
 
@@ -126,7 +126,7 @@ function SortableItem({ link, theme, onRemove }: { link: LinkItem; theme: ThemeK
   const themeData = THEMES[theme];
   return (
     <motion.div ref={setNodeRef} style={style} initial={false} whileHover={{ scale: 1.08, y: -4, zIndex: 100 }} whileTap={{ scale: 0.98 }} transition={springTransition} className={`group relative ${isDragging ? "opacity-0" : "opacity-100"}`}>
-      <div {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 rounded-[1.2rem] border transition-all cursor-move aspect-square w-full ${themeData.card} hover:border-white/40 shadow-xl overflow-hidden`}>
+      <div {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 rounded-[1.2rem] border transition-all cursor-move aspect-square w-full ${themeData.card} hover:border-black/50 shadow-xl overflow-hidden`}>
         <a href={link.url} target="_blank" rel="noopener noreferrer" className="contents">
           <FaviconIcon url={link.url} name={link.name} theme={theme} />
           <span className={`text-[9px] sm:text-[10px] font-bold tracking-tight truncate w-full px-1 text-center leading-tight ${themeData.text}`}>{link.name}</span>
@@ -245,6 +245,9 @@ export default function Home() {
       </div>
 
       <div className="fixed top-6 right-6 z-[100] flex items-center gap-2">
+        <Link href="/download" className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-xl border border-black/5">
+           <Download size={14} /> 获取桌面增强版
+        </Link>
         <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5 shadow-2xl">
           <button onClick={()=>setIsSettingsOpen(true)} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></button>
           <button onClick={togglePlay} className="p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}</button>
@@ -253,7 +256,6 @@ export default function Home() {
       </div>
 
       <div className="fixed top-6 left-6 z-[100] flex items-center gap-3">
-        {/* 去除背景框，直接悬浮显示 Logo */}
         <div className="w-10 h-10 flex items-center justify-center">
            <img src={LOGO_URL} alt="WEN Logo" className="w-full h-full object-contain drop-shadow-lg" />
         </div>
@@ -262,29 +264,61 @@ export default function Home() {
 
       <div className="relative z-10 max-w-[85rem] mx-auto px-6 py-10 mt-24 h-full overflow-y-auto pb-64 custom-scrollbar">
         <div className="flex flex-col items-center gap-5 mb-24">
-          <div className="flex bg-white/5 backdrop-blur-2xl rounded-xl p-1 border border-white/10 shadow-2xl">
-            {Object.keys(ENGINES).map(id => ( <button key={id} onClick={()=>setEngine(id as any)} className={`px-6 py-1.5 rounded-lg text-[10px] font-bold transition-all ${engine===id?'bg-white text-black shadow-lg' : 'text-white/20 hover:text-white'}`}>{ENGINES[id as keyof typeof ENGINES].name}</button> ))}
+          {/* 修正：搜索引擎选择器在亮色背景下的对比度 */}
+          <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
+            {Object.keys(ENGINES).map(id => ( 
+              <button 
+                key={id} 
+                onClick={()=>setEngine(id as any)} 
+                className={`px-6 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${
+                  engine===id 
+                  ? 'bg-white text-black shadow-lg border border-black/10 scale-105' 
+                  : theme === 'office' 
+                    ? 'text-slate-600 hover:text-slate-900' 
+                    : 'text-white/20 hover:text-white'
+                }`}
+              >
+                {ENGINES[id as keyof typeof ENGINES].name}
+              </button> 
+            ))}
           </div>
-          <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full max-w-lg">
-            <div className={`flex items-center bg-white/5 backdrop-blur-[32px] rounded-2xl border border-white/20 px-8 py-0.5 focus-within:bg-white/10 focus-within:border-white/40 transition-all shadow-xl`}>
-              <Search size={20} className="text-white/20 mr-4" />
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={`搜索灵感...`} className={`flex-1 py-4 bg-transparent text-sm focus:outline-none font-bold placeholder-white/10 ${currentTheme.text}`} />
+          <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full max-w-xl">
+            {/* 修正：搜索框在亮色背景下的对比度 */}
+            <div className={`flex items-center rounded-3xl border px-8 py-1 transition-all shadow-2xl ${
+              theme === 'office' 
+              ? 'bg-slate-950/5 border-slate-950/30 focus-within:bg-white/10 focus-within:ring-4 focus-within:ring-slate-950/5' 
+              : 'bg-white/5 border-white/20 focus-within:bg-white/20 focus-within:ring-4 focus-within:ring-white/5'
+            }`}>
+              <Search size={24} className={`${theme === 'office' ? 'text-slate-700' : 'text-white/60'} mr-5 transition-colors`} strokeWidth={3} />
+              <input 
+                value={search} 
+                onChange={e=>setSearch(e.target.value)} 
+                placeholder={`搜索灵感...`} 
+                className={`flex-1 py-5 bg-transparent text-base focus:outline-none font-bold ${
+                  theme === 'office' 
+                  ? 'placeholder-slate-500 text-slate-900' 
+                  : 'placeholder-white/20 text-white'
+                }`} 
+              />
+              <button type="submit" className={`p-2.5 rounded-xl transition-all ${theme === 'office' ? 'text-slate-400 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}>
+                <ChevronRight size={20} strokeWidth={3} />
+              </button>
             </div>
           </form>
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>{setActiveId(null);}}>
-          <main className="space-y-20">
+          <main className="space-y-24">
             {categories.map((c) => (
               <section key={c.id}>
-                <div className="flex items-center gap-5 mb-8 px-2">
-                   <h2 className={`text-[11px] font-bold tracking-[0.5em] uppercase opacity-40 ${currentTheme.text}`}>{c.title}</h2>
-                   <div className="h-[1px] flex-1 bg-white/5" />
+                <div className="flex items-center gap-6 mb-10 px-2">
+                   <h2 className={`text-[12px] font-black tracking-[0.6em] uppercase opacity-60 ${currentTheme.text}`}>{c.title}</h2>
+                   <div className={`h-[1px] flex-1 ${theme==='office' ? 'bg-slate-950/10' : 'bg-white/5'}`} />
                 </div>
                 <SortableContext items={c.links.map(l=>l.id)} strategy={rectSortingStrategy}>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3.5 sm:gap-4 lg:gap-5">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
                     {c.links.map((l) => ( <SortableItem key={l.id} link={l} theme={theme} onRemove={()=>{setCategories(prev=>prev.map(cat=>({...cat,links:cat.links.filter(li=>li.id!==l.id)})))}} /> ))}
-                    <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`flex items-center justify-center rounded-[1.2rem] border border-dashed border-white/10 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={22} strokeWidth={2} /></motion.button>
+                    <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`flex items-center justify-center rounded-[1.4rem] border border-dashed border-white/20 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={24} strokeWidth={3} /></motion.button>
                   </div>
                 </SortableContext>
               </section>
@@ -292,7 +326,7 @@ export default function Home() {
           </main>
           <DragOverlay dropAnimation={null}>
             {activeId && categories.find(c=>c.links.some(l=>l.id===activeId)) ? (
-               <div className={`p-2.5 rounded-[1.2rem] border shadow-2xl scale-110 w-[78px] aspect-square flex flex-col items-center justify-center pointer-events-none ${currentTheme.card}`}>
+               <div className={`p-3 rounded-[1.4rem] border shadow-2xl scale-110 w-[84px] aspect-square flex flex-col items-center justify-center pointer-events-none ${currentTheme.card}`}>
                   <FaviconIcon url={categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.url || ''} name={categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.name || ''} theme={theme} />
                   <span className={`text-[10px] font-bold truncate w-full px-1 text-center ${currentTheme.text}`}>{categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.name}</span>
                </div>
@@ -386,7 +420,7 @@ export default function Home() {
                       <Download size={18}/>
                     </button>
                   </div>
-                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block text-white">Engine Build v1.1.52-Immortal</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block text-white">Engine Build v1.1.55-Immortal</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
                </div>
             </motion.div>
           </div>
