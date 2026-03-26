@@ -90,6 +90,8 @@ const ENGINES = {
 };
 
 const STABLE_STORAGE_KEY = "moyu-user-config-stable";
+const DB_NAME = "moyu-wallpaper-db";
+const STORE_NAME = "assets";
 const OLD_KEYS = ["moyu-v21-rename-env", "moyu-v22-low-opacity", "moyu-v23-build-fix", "moyu-v24-download-page", "moyu-v25-final"];
 
 const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 };
@@ -124,6 +126,7 @@ export default function Home() {
   const [theme, setTheme] = useState<ThemeKey>("default");
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [bgUrl, setBgUrl] = useState(DEFAULT_BG);
   const [bgType, setBgType] = useState<"video" | "image">("video");
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
@@ -135,9 +138,23 @@ export default function Home() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
+  // IndexedDB Helper
+  const initDB = (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 3);
+      request.onupgradeneeded = (e: any) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+      request.onsuccess = (e: any) => resolve(e.target.result);
+      request.onerror = (e) => reject(e);
+    });
+  };
+
   useEffect(() => {
     setMounted(true);
-    // SEARCH FOR DATA IN STABLE KEY OR OLD KEYS
     let saved = localStorage.getItem(STABLE_STORAGE_KEY);
     if (!saved) {
       for (const k of OLD_KEYS) {
@@ -154,11 +171,20 @@ export default function Home() {
       } catch (e) {}
     } else { setSelectedCatId(DEFAULT_CATEGORIES[0].id); }
     
-    const r = indexedDB.open("moyu-storage-db", 2);
-    r.onsuccess = (e: any) => {
-      const db = e.target.result; const tx = db.transaction(["assets"],"readonly");
-      tx.objectStore("assets").get("bg-blob").onsuccess = (ev: any) => { if (ev.target.result) setBgUrl(URL.createObjectURL(ev.target.result)); };
-    };
+    // Load Wallpaper from DB
+    initDB().then(db => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      tx.objectStore(STORE_NAME).get("bg-blob").onsuccess = (ev: any) => {
+        if (ev.target.result) {
+          const blob = ev.target.result;
+          setBgUrl(URL.createObjectURL(blob));
+          setBgType(blob.type.startsWith('video') ? 'video' : 'image');
+        }
+      };
+    }).catch(err => console.error("IDB Error:", err));
+
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => { if (mounted) localStorage.setItem(STABLE_STORAGE_KEY, JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted]);
@@ -337,14 +363,25 @@ export default function Home() {
                </div>
                <div className="p-6 border-t border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl">
                   <div className="flex gap-4"><button onClick={exportConfig} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Share2 size={18}/></button><button onClick={()=>configInputRef.current?.click()} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white hover:text-black transition-all"><Upload size={18}/></button></div>
-                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.16-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
+                  <div className="flex items-center gap-4"><div className="text-[10px] opacity-20 font-bold uppercase tracking-[0.2em] hidden md:block">Engine Build v1.1.18-Stable</div><button onClick={()=>setIsSettingsOpen(false)} className="px-16 py-4 bg-white text-black font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap">保存当前全部配置</button></div>
                </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      <input type="file" ref={fileInputRef} className="hidden" accept="video/*,image/*" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const t = f.type.startsWith('video')?'video':'image'; setBgType(t); setBgUrl(URL.createObjectURL(f)); const req = indexedDB.open("moyu-storage-db", 2); req.onsuccess=(ev:any)=>ev.target.result.transaction(["assets"],"readwrite").objectStore("assets").put(f,"bg-blob"); } }} />
+      <input type="file" ref={fileInputRef} className="hidden" accept="video/*,image/*" onChange={(e)=>{ 
+        const f = e.target.files?.[0]; 
+        if(f){ 
+          const t = f.type.startsWith('video')?'video':'image'; 
+          setBgType(t); 
+          setBgUrl(URL.createObjectURL(f)); 
+          initDB().then(db => {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).put(f, "bg-blob");
+          });
+        } 
+      }} />
       <input type="file" ref={configInputRef} className="hidden" accept=".json" onChange={(e)=>{ const f = e.target.files?.[0]; if(f){ const r = new FileReader(); r.onload=(ev)=>{ try { const p = JSON.parse(ev.target?.result as string); if(p.categories){setCategories(p.categories); setSelectedCatId(p.categories[0]?.id); alert("导入成功"); } }catch(err){alert("文件无效");} }; r.readAsText(f); } }} />
     </div>
   );
