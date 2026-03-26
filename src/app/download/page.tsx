@@ -98,7 +98,7 @@ export default function DownloadPage() {
   // 🚀 CRITICAL: ONE TRANSFORM HOOK ONLY
   const maskValue = useTransform(
     [smoothX, smoothY],
-    ([x, y]) => {
+    ([x, y]: [number, number]) => {
       const scrollTop = scrollRef.current?.scrollTop || 0;
       return `radial-gradient(450px circle at ${x}px ${y + scrollTop}px, black 0%, transparent 100%)`;
     }
