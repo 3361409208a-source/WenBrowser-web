@@ -263,7 +263,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 max-w-[85rem] mx-auto px-6 py-10 mt-24 h-full overflow-y-auto pb-64 custom-scrollbar">
-        <div className="flex flex-col items-center gap-5 mb-24">
+        <div className="flex flex-col items-center gap-5 mb-12">
           {/* 修正：搜索引擎选择器在亮色背景下的对比度 */}
           <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
             {Object.keys(ENGINES).map(id => ( 
@@ -308,10 +308,10 @@ export default function Home() {
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>{setActiveId(null);}}>
-          <main className="space-y-24">
+          <main className="space-y-16">
             {categories.map((c) => (
               <section key={c.id}>
-                <div className="flex items-center gap-6 mb-10 px-2">
+                <div className="flex items-center gap-6 mb-6 px-2">
                    <h2 className={`text-[12px] font-black tracking-[0.6em] uppercase opacity-60 ${currentTheme.text}`}>{c.title}</h2>
                    <div className={`h-[1px] flex-1 ${theme==='office' ? 'bg-slate-950/10' : 'bg-white/5'}`} />
                 </div>
