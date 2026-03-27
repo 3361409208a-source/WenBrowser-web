@@ -4,17 +4,20 @@ import { useState, useRef, useEffect } from "react";
 import { 
   DndContext, 
   closestCenter, 
+  rectIntersection,
   KeyboardSensor, 
   PointerSensor, 
   useSensor, 
   useSensors,
-  DragOverlay
+  DragOverlay,
+  useDroppable
 } from "@dnd-kit/core";
 import { 
   arrayMove, 
   SortableContext, 
   sortableKeyboardCoordinates, 
   rectSortingStrategy,
+  verticalListStrategy,
   useSortable
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -65,14 +68,18 @@ function SortableItem({ link, theme, onRemove }: { link: LinkItem; theme: ThemeK
   const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 2000 : 0 };
   const themeData = THEMES[theme];
   return (
-    <motion.div ref={setNodeRef} style={style} transition={springTransition} className={`group relative ${isDragging ? "opacity-0" : "opacity-100"}`}>
+    <motion.div ref={setNodeRef} style={style} transition={springTransition} className={`group relative ${isDragging ? "opacity-0" : "opacity-100"} flex justify-center`}>
       <div {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 rounded-[1.2rem] border transition-all cursor-move aspect-square w-full ${themeData.card} hover:border-black/50 shadow-xl overflow-hidden`}>
         <a href={link.url} target="_blank" rel="noopener noreferrer" className="contents">
           <FaviconIcon url={link.url} name={link.name} theme={theme} />
           <span className={`text-[9px] sm:text-[10px] font-bold tracking-tight truncate w-full px-1 text-center leading-tight ${themeData.text}`}>{link.name}</span>
         </a>
       </div>
-      <button onClick={onRemove} className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all scale-75 hover:scale-100 shadow-xl z-[150]"><X size={10} strokeWidth={4} /></button>
+      <div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-2 rounded-2xl text-[9px] font-bold shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[150] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${themeData.panel} border ${themeData.border} backdrop-blur-3xl`}>
+        🚀 点击开启 / 🎨 拖动重排
+        <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${themeData.panel} ${themeData.border}`} />
+      </div>
+      <button onClick={onRemove} className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all scale-75 hover:scale-100 shadow-xl z-[160]"><X size={10} strokeWidth={4} /></button>
     </motion.div>
   );
 }
@@ -175,6 +182,81 @@ const CursorTrail = ({ theme }: { theme: ThemeKey }) => {
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-[1000]" />;
 };
 
+function CategorySection({ c, theme, onRemoveLink, onAddLink, onRename }: { c: Category; theme: ThemeKey; onRemoveLink: (lId: string) => void; onAddLink: () => void; onRename: (newTitle: string) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: c.id });
+  const { setNodeRef: setDroppableRef } = useDroppable({ id: `dropzone-${c.id}` });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(c.title);
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : 0 };
+  const currentTheme = THEMES[theme];
+
+  const handleBlur = () => { setIsEditing(false); if (editTitle.trim() && editTitle !== c.title) onRename(editTitle.trim()); };
+
+  return (
+    <motion.section ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-30' : 'opacity-100'} transition-opacity outline-none`} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}>
+      <div {...(isEditing ? {} : attributes)} {...(isEditing ? {} : listeners)} className="flex items-center gap-6 mb-8 px-2 group/handle">
+        <div className="relative">
+          {isEditing ? (
+            <input
+              autoFocus
+              className={`text-[12px] font-black tracking-[0.6em] uppercase bg-transparent border-b border-dashed border-white/20 focus:border-white/60 focus:outline-none py-1 min-w-[150px] ${currentTheme.text}`}
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={e => { if (e.key === 'Enter') handleBlur(); if (e.key === 'Escape') { setEditTitle(c.title); setIsEditing(false); } }}
+            />
+          ) : (
+            <h2 
+              onClick={() => { setIsEditing(true); setEditTitle(c.title); }}
+              className={`text-[12px] font-black tracking-[0.6em] uppercase opacity-60 group-hover/handle:opacity-100 transition-opacity cursor-text hover:bg-white/5 px-2 -mx-2 rounded h-8 flex items-center ${currentTheme.text}`}
+            >
+              {c.title}
+            </h2>
+          )}
+        </div>
+        {!isEditing && <div className="flex-1 cursor-grab active:cursor-grabbing h-8 flex items-center"><div className={`h-[1px] w-full transition-all opacity-10 group-hover/handle:opacity-30 ${theme === 'office' ? 'bg-slate-950' : 'bg-white'}`} /></div>}
+        {isEditing && <div className="flex-1 h-8 flex items-center"><div className={`h-[1px] w-full opacity-5 bg-white`} /></div>}
+      </div>
+      <SortableContext items={c.links.map(l => l.id)} strategy={rectSortingStrategy}>
+        <div ref={setDroppableRef} className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-4 sm:gap-5 lg:gap-6 min-h-[100px]">
+          {c.links.map((l) => (<SortableItem key={l.id} link={l} theme={theme} onRemove={() => onRemoveLink(l.id)} />))}
+          <div className="group relative flex justify-center">
+            <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={onAddLink} className={`flex items-center justify-center rounded-[1.4rem] border border-dashed border-white/20 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={24} strokeWidth={3} /></motion.button>
+            <div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-2 rounded-2xl text-[10px] font-bold shadow-2xl z-[100] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>
+              ➕ 在此分类下添加快捷节点
+              <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} />
+            </div>
+          </div>
+        </div>
+      </SortableContext>
+    </motion.section>
+  );
+}
+
+function NewCategoryDropzone({ currentTheme, theme, onAdd }: { currentTheme: any, theme: ThemeKey, onAdd: () => void }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "new-cat-dropzone" });
+  return (
+    <motion.section ref={setNodeRef} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}>
+      <div className={`group relative transition-all duration-300 ${isOver ? 'scale-105 brightness-150' : ''}`}>
+        <button 
+          onClick={onAdd} 
+          className={`flex items-center gap-6 mb-8 px-2 w-full transition-all group-hover:translate-x-1 outline-none`}
+        >
+          <div className="flex items-center gap-2">
+            <Plus className={`${currentTheme.text} opacity-30 group-hover:opacity-100 transition-opacity`} size={24} strokeWidth={3} />
+            <h2 className={`text-[12px] font-black tracking-[0.6em] uppercase transition-all opacity-30 group-hover:opacity-100 ${currentTheme.text}`}>新建分类模块</h2>
+          </div>
+          <div className={`h-[1px] flex-1 transition-all opacity-10 group-hover:opacity-30 ${theme==='office' ? 'bg-slate-950' : 'bg-white'}`} />
+        </button>
+        <div className={`absolute -top-12 left-6 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-3 rounded-2xl text-[10px] font-bold shadow-2xl z-[150] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>
+          {isOver ? "🚀 释放图标以创建新分类" : "📂 创建一个全新的分类模块"}
+          <div className={`absolute bottom-[-4px] left-4 w-2 h-2 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} />
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -228,7 +310,7 @@ export default function Home() {
       <div className="fixed top-6 right-6 z-[500] flex items-center gap-2">
         <Link href="/download" className="px-5 py-2.5 bg-white text-black rounded-xl font-bold text-[10px] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-xl border border-black/5"><Download size={14} /> WENBrowser</Link>
         <div className="flex bg-black/20 backdrop-blur-2xl rounded-xl p-1 border border-white/5 shadow-2xl">
-          <motion.button whileTap={{scale:0.95}} onClick={()=>{console.log("Settings clicked"); setIsSettingsOpen(true);}} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></motion.button>
+          <motion.button whileTap={{scale:0.95}} onClick={()=>{setIsSettingsOpen(true);}} className="p-2 text-white/30 hover:text-white transition-all"><Settings size={16}/></motion.button>
           <button onClick={togglePlay} className="p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}</button>
           <button onClick={toggleMute} className="p-2 text-white/30 hover:text-white transition-all">{isMuted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button>
         </div>
@@ -236,8 +318,8 @@ export default function Home() {
 
       <div className="fixed top-6 left-6 z-[100] flex items-center gap-3"><h1 className={`text-xl font-bold tracking-tighter italic hidden sm:block ${currentTheme.text}`}>WENBrowser</h1></div>
 
-      <div className="relative z-[20] h-screen flex flex-col pt-32 overflow-hidden">
-        <div className="flex-shrink-0 w-full max-w-xl mx-auto px-6 mb-16">
+      <div className="relative z-[20] h-screen flex flex-col pt-20 overflow-hidden">
+        <div className="flex-shrink-0 w-full max-w-xl mx-auto px-6 mb-10">
           <motion.div initial={{ opacity: 0, y: 30, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center gap-5">
             <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
               {Object.keys(ENGINES).map(id => (<button key={id} onClick={()=>setEngine(id as any)} className={`px-6 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${engine===id ? 'bg-white text-black shadow-lg border border-black/10 scale-105' : theme === 'office' ? 'text-slate-600 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}>{ENGINES[id as keyof typeof ENGINES].name}</button>))}
@@ -252,21 +334,24 @@ export default function Home() {
           </motion.div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 h-full custom-scrollbar pb-64" style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 80px)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 80px)' }}>
-          <div className="max-w-[85rem] mx-auto">
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) oL.push(mI); else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>setActiveId(null)}>
+        <div className="flex-1 overflow-y-auto px-6 h-full custom-scrollbar pb-[32rem]" style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 20px)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20px)' }}>
+          <div className="max-w-[85rem] mx-auto pt-6">
+            <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; if (id.startsWith('dropzone-')) return id.replace('dropzone-', ''); return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC || aC === aI || oC === oI) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); if (aCatIdx<0 || oCatIdx<0) return prev; const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); if (aIdx < 0) return prev; const [mI] = aL.splice(aIdx, 1); if (oI.startsWith('dropzone-')) oL.push(mI); else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); if (cI<0) return prev; const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={(e)=>{const {active, over} = e; if (over) { const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; if (id.startsWith('dropzone-')) return id.replace('dropzone-', ''); return categories.find(c => c.links.some(l => l.id === id))?.id; }; if (over.id === "new-cat-dropzone") { if (!categories.some(c => c.id === active.id)) { setCategories(prev => { let mL: any = null; const nCs = prev.map(cat => { const lI = cat.links.findIndex(l => l.id === active.id); if (lI >= 0) { mL = cat.links[lI]; const nLs = [...cat.links]; nLs.splice(lI, 1); return { ...cat, links: nLs }; } return cat; }); if (mL) return [...nCs, { id: `cat-${Date.now()}`, title: "新分类", links: [mL] }]; return prev; }); } } else if (active.id !== over.id) { if (categories.some(c => c.id === active.id)) { setCategories((items) => { const oldIdx = items.findIndex(i => i.id === active.id); const newIdx = items.findIndex(i => i.id === (over.id.toString().startsWith('dropzone-')?over.id.toString().replace('dropzone-',''):over.id)); return arrayMove(items, oldIdx, newIdx); }); } } } setActiveId(null);}}>
               <motion.main initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }} className="space-y-12">
-                {categories.map((c) => (
-                  <motion.section key={c.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}>
-                    <div className="flex items-center gap-6 mb-8 px-2"><h2 className={`text-[12px] font-black tracking-[0.6em] uppercase opacity-60 ${currentTheme.text}`}>{c.title}</h2><div className={`h-[1px] flex-1 ${theme==='office' ? 'bg-slate-950/10' : 'bg-white/5'}`} /></div>
-                    <SortableContext items={c.links.map(l=>l.id)} strategy={rectSortingStrategy}>
-                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
-                        {c.links.map((l) => (<SortableItem key={l.id} link={l} theme={theme} onRemove={()=>setCategories(prev=>prev.map(cat=>({...cat,links:cat.links.filter(li=>li.id!==l.id)})))} />))}
-                        <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`flex items-center justify-center rounded-[1.4rem] border border-dashed border-white/20 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={24} strokeWidth={3} /></motion.button>
-                      </div>
-                    </SortableContext>
-                  </motion.section>
-                ))}
+                <SortableContext items={categories.map(c => c.id)} strategy={verticalListStrategy}>
+                  {categories.map((c) => (
+                    <CategorySection
+                      key={c.id} 
+                      c={c} 
+                      theme={theme} 
+                      onRemoveLink={(lId) => setCategories(prev => prev.map(cat => ({ ...cat, links: cat.links.filter(li => li.id !== lId) })))}
+                      onAddLink={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }}
+                      onRename={(newVal) => setCategories(prev => prev.map(cat => cat.id === c.id ? { ...cat, title: newVal } : cat))}
+                    />
+                  ))}
+                </SortableContext>
+                
+                <NewCategoryDropzone currentTheme={currentTheme} theme={theme} onAdd={() => setIsCatModalOpen(true)} />
               </motion.main>
               <DragOverlay dropAnimation={null}>{activeId && categories.find(c=>c.links.some(l=>l.id===activeId)) ? (<div className={`p-3 rounded-[1.4rem] border shadow-2xl scale-110 w-[84px] aspect-square flex flex-col items-center justify-center pointer-events-none ${currentTheme.card}`}><FaviconIcon url={categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.url || ''} name={categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.name || ''} theme={theme} /><span className={`text-[10px] font-bold truncate w-full px-1 text-center ${currentTheme.text}`}>{categories.find(c=>c.links.some(l=>l.id===activeId))?.links.find(l=>l.id===activeId)?.name}</span></div>) : null}</DragOverlay>
             </DndContext>
@@ -302,10 +387,56 @@ export default function Home() {
             <motion.div key="settings-modal-content" initial={{opacity:0, scale: 0.95, y: 30}} animate={{opacity:1, scale: 1, y: 0}} exit={{opacity:0, scale: 0.95, y: 30}} className={`relative ${currentTheme.panel} border ${currentTheme.panelBorder} rounded-[1.8rem] w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl overflow-hidden`}>
                <div className={`px-8 py-6 flex items-center justify-between border-b ${currentTheme.panelBorder}`}><div className="flex items-center gap-4"><div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${currentTheme.panelBorder} ${currentTheme.panelSidebar}`}><Shield size={20} className="opacity-60" /></div><div><h3 className={`text-lg font-bold ${currentTheme.panelText}`}>WEN 控制面板</h3><p className={`text-[9px] opacity-60 uppercase tracking-widest mt-0.5 ${currentTheme.panelMuted}`}>Configuration System</p></div></div><button onClick={()=>setIsSettingsOpen(false)} className={`p-2 opacity-30 hover:opacity-100 transition-all ${currentTheme.panelText}`}><X size={22}/></button></div>
                <div className="flex-1 overflow-hidden flex">
-                  <div className={`w-[280px] border-r ${currentTheme.panelBorder} flex flex-col ${currentTheme.panelSidebar} font-bold`}><div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-12"><section><div className="flex items-center justify-between mb-4"><label className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Palette size={12}/> 视觉主题 / THEMES</label></div><div className="flex items-center justify-between gap-1.5 px-0.5">{(Object.keys(THEMES) as ThemeKey[]).map(key => (<button key={key} onClick={() => setTheme(key)} className={`group relative flex-1 aspect-square rounded-lg border transition-all flex items-center justify-center overflow-hidden h-9 ${theme === key ? 'border-primary' : `${currentTheme.panelBorder}`}`}><div className={`absolute inset-0 ${THEMES[key].preview} opacity-80`} />{theme === key && <Check size={14} className="relative z-10 text-white" />}</button>))}</div></section><section><div className="flex items-center justify-between mb-6"><label className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Layers size={12}/> 分类管理 / CLUSTERS</label><button onClick={()=>setIsCatModalOpen(true)} className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all ${currentTheme.panelText}`}><Plus size={14}/></button></div><div className="flex flex-col gap-1">{categories.map((c) => (<button key={c.id} onClick={() => setSelectedCatId(c.id)} className={`group p-3 rounded-xl flex items-center justify-between transition-all ${selectedCatId === c.id ? `${currentTheme.accent}` : `opacity-50 ${currentTheme.panelText}`}`}><div className="flex items-center gap-3 overflow-hidden text-nowrap"><Hash size={12} className={selectedCatId === c.id ? '' : 'opacity-20'} /><span className="text-[11px] font-bold truncate max-w-[150px]">{c.title}</span></div></button>))}</div></section></div></div>
-                  <div className="flex-1 flex flex-col overflow-hidden">{selectedCatId && categories.find(c=>c.id===selectedCatId) ? (<><div className={`px-10 py-8 border-b ${currentTheme.panelBorder} flex items-center justify-between`}><div className={`flex items-center gap-6 ${currentTheme.panelText}`}><div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold opacity-60 italic ${currentTheme.panelSidebar}`}>{categories.findIndex(c => c.id === selectedCatId) + 1}</div><div><input value={categories.find(c=>c.id===selectedCatId)?.title} onChange={(e)=>{ const n=[...categories]; const i=n.findIndex(x=>x.id===selectedCatId); n[i].title=e.target.value; setCategories(n); }} className={`bg-transparent font-bold text-2xl focus:outline-none w-full shadow-none border-none ring-0 outline-none ${currentTheme.panelText}`} /><p className={`text-[9px] opacity-60 uppercase tracking-[0.4em] mt-1 font-bold ${currentTheme.panelMuted}`}>Category Instance Identifier</p></div></div><button onClick={()=>{if(confirm("确定永久移除此分类模块？")) { const n=categories.filter(x=>x.id!==selectedCatId); setCategories(n); if(n.length) setSelectedCatId(n[0].id); else setSelectedCatId(null); }}} className="p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"><Trash2 size={16} /> 删除分类</button></div><div className="flex-1 p-10 overflow-y-auto custom-scrollbar space-y-8"><div className="grid grid-cols-1 gap-4"><div className={`flex items-center gap-3 px-6 opacity-60 mb-2 ${currentTheme.panelText}`}><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-1">节点名称 / LABEL</span><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-[2]">目标地址 / URL</span><div className="w-8" /></div>{categories.find(c=>c.id===selectedCatId)?.links.map((l, lIdx) => (<motion.div key={l.id} className={`flex gap-4 p-5 rounded-[1.6rem] items-center border transition-all ${currentTheme.panelInput} ${currentTheme.panelBorder}`}><div className={`p-2.5 rounded-xl ${currentTheme.panelSidebar}`}><Globe size={14} className="opacity-60"/></div><input value={l.name} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links[lIdx].name=e.target.value; setCategories(n);}} className={`bg-transparent text-sm font-bold w-44 focus:outline-none ${currentTheme.panelText}`} /><input value={l.url} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links[lIdx].url=e.target.value; setCategories(n);}} className={`bg-transparent text-[11px] flex-1 opacity-60 focus:opacity-100 transition-opacity truncate focus:outline-none ${currentTheme.panelMuted}`} /><button onClick={()=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links.splice(lIdx,1); setCategories(n);}} className="text-red-500 p-2 hover:bg-red-500/10 rounded-xl transition-all"><X size={16}/></button></motion.div>))}<button onClick={()=>{ setLinkModalData({ catId: selectedCatId!, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`w-full py-6 border-2 border-dashed rounded-[1.6rem] flex items-center justify-center gap-3 text-[11px] font-bold opacity-60 hover:opacity-100 transition-all mt-4 ${currentTheme.panelBorder} ${currentTheme.panelText}`}><Plus size={18}/> APPEND NEW NODE</button></div></div></>) : (<div className={`flex-1 flex flex-col items-center justify-center text-center opacity-20 p-20 ${currentTheme.panelText}`}><Layers size={64} className="mb-6" /><h4 className="text-xl font-bold uppercase tracking-widest">请选择或创建一个分类模块</h4></div>)}</div>
+                  <div className={`w-[280px] border-r ${currentTheme.panelBorder} flex flex-col ${currentTheme.panelSidebar} font-bold`}><div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-12"><section><div className="flex items-center justify-between mb-4"><label className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Palette size={12}/> 视觉主题 / THEMES</label></div><div className="flex items-center justify-between gap-1.5 px-0.5">{(Object.keys(THEMES) as ThemeKey[]).map(key => (<button key={key} onClick={() => setTheme(key)} className={`group relative flex-1 aspect-square rounded-lg border transition-all flex items-center justify-center overflow-hidden h-9 ${theme === key ? 'border-primary' : `${currentTheme.panelBorder}`}`}><div className={`absolute inset-0 ${THEMES[key].preview} opacity-80`} />{theme === key && <Check size={14} className="relative z-10 text-white" />}</button>))}</div></section><section><div className="flex items-center justify-between mb-6"><label className={`text-[10px] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Layers size={12}/> 分类管理 / CLUSTERS</label><div className="group relative flex justify-center"><button onClick={()=>setIsCatModalOpen(true)} className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all ${currentTheme.panelText}`}><Plus size={14}/></button><div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-3 py-1.5 rounded-2xl text-[9px] font-bold shadow-2xl z-[150] transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>📂 创建全新分类模块<div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} /></div></div></div><div className="flex flex-col gap-1">{categories.map((c) => (<button key={c.id} onClick={() => setSelectedCatId(c.id)} className={`group p-3 rounded-xl flex items-center justify-between transition-all ${selectedCatId === c.id ? `${currentTheme.accent}` : `opacity-50 ${currentTheme.panelText}`}`}><div className="flex items-center gap-3 overflow-hidden text-nowrap"><Hash size={12} className={selectedCatId === c.id ? '' : 'opacity-20'} /><span className="text-[11px] font-bold truncate max-w-[150px]">{c.title}</span></div></button>))}</div></section></div></div>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    {selectedCatId && categories.find(c=>c.id===selectedCatId) ? (
+                      <>
+                        <div className={`px-10 py-8 border-b ${currentTheme.panelBorder} flex items-center justify-between`}><div className={`flex items-center gap-6 ${currentTheme.panelText}`}><div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold opacity-60 italic ${currentTheme.panelSidebar}`}>{categories.findIndex(c => c.id === selectedCatId) + 1}</div><div><input value={categories.find(c=>c.id===selectedCatId)?.title} onChange={(e)=>{ const n=[...categories]; const i=n.findIndex(x=>x.id===selectedCatId); n[i].title=e.target.value; setCategories(n); }} className={`bg-transparent font-bold text-2xl focus:outline-none w-full shadow-none border-none ring-0 outline-none ${currentTheme.panelText}`} /><p className={`text-[9px] opacity-60 uppercase tracking-[0.4em] mt-1 font-bold ${currentTheme.panelMuted}`}>Category Instance Identifier</p></div></div><button onClick={()=>{if(confirm("确定永久移除此分类模块？")) { const n=categories.filter(x=>x.id!==selectedCatId); setCategories(n); if(n.length) setSelectedCatId(n[0].id); else setSelectedCatId(null); }}} className="p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"><Trash2 size={16} /> 删除分类</button></div>
+                        <div className="flex-1 p-10 overflow-y-auto custom-scrollbar space-y-8">
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className={`flex items-center gap-3 px-6 opacity-60 mb-2 ${currentTheme.panelText}`}><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-1">节点名称 / LABEL</span><span className="text-[10px] font-bold uppercase tracking-[0.2em] flex-[2]">目标地址 / URL</span><div className="w-8" /></div>
+                            {categories.find(c=>c.id===selectedCatId)?.links.map((l, lIdx) => (
+                              <motion.div key={l.id} className={`flex gap-4 p-5 rounded-[1.6rem] items-center border transition-all ${currentTheme.panelInput} ${currentTheme.panelBorder}`}>
+                                <div className={`p-2.5 rounded-xl ${currentTheme.panelSidebar}`}><Globe size={14} className="opacity-60"/></div>
+                                <input value={l.name} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links[lIdx].name=e.target.value; setCategories(n);}} className={`bg-transparent text-sm font-bold w-44 focus:outline-none ${currentTheme.panelText}`} />
+                                <input value={l.url} onChange={(e)=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links[lIdx].url=e.target.value; setCategories(n);}} className={`bg-transparent text-[11px] flex-1 opacity-60 focus:opacity-100 transition-opacity truncate focus:outline-none ${currentTheme.panelMuted}`} />
+                                <button onClick={()=>{const n=[...categories]; const ci=n.findIndex(x=>x.id===selectedCatId); n[ci].links.splice(lIdx,1); setCategories(n);}} className="text-red-500 p-2 hover:bg-red-500/10 rounded-xl transition-all"><X size={16}/></button>
+                              </motion.div>
+                            ))}
+                            <button onClick={()=>{ setLinkModalData({ catId: selectedCatId!, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`w-full py-6 border-2 border-dashed rounded-[1.6rem] flex items-center justify-center gap-3 text-[11px] font-bold opacity-60 hover:opacity-100 transition-all mt-4 ${currentTheme.panelBorder} ${currentTheme.panelText}`}><Plus size={18}/> APPEND NEW NODE</button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className={`flex-1 flex flex-col items-center justify-center text-center opacity-20 p-20 ${currentTheme.panelText}`}>
+                        <Layers size={64} className="mb-6" />
+                        <h4 className="text-xl font-bold uppercase tracking-widest">请选择或创建一个分类模块</h4>
+                      </div>
+                    )}
+                  </div>
                </div>
-               <div className={`p-6 border-t ${currentTheme.panelBorder} flex items-center justify-between ${currentTheme.panelSidebar} backdrop-blur-3xl`}><div className="flex gap-4"><button onClick={()=>{ const d = JSON.stringify({ categories, theme, bgType }, null, 2); const b = new Blob([d], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "WEN_Backup.json"; a.click(); }} className={`p-3 rounded-xl border transition-all shadow-xl ${currentTheme.panelInput} hover:opacity-80`}><Upload size={18}/></button><button onClick={()=>configInputRef.current?.click()} className={`p-3 rounded-xl border transition-all shadow-xl ${currentTheme.panelInput} hover:opacity-80`}><Download size={18}/></button></div><div className="flex items-center gap-4"><div className={`text-[10px] opacity-60 font-bold uppercase tracking-[0.2em] hidden md:block ${currentTheme.panelMuted}`}>Engine Build v1.1.55</div><button onClick={()=>setIsSettingsOpen(false)} className={`px-16 py-4 font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap ${currentTheme.accent}`}>保存当前全部配置</button></div></div>
+               <div className={`p-6 border-t ${currentTheme.panelBorder} flex items-center justify-between ${currentTheme.panelSidebar} backdrop-blur-3xl`}>
+                 <div className="flex gap-4">
+                   {[
+                     { icon: <ImageIcon size={18}/>, title: "更换背景", tip: "✨ 自定义你的专属空间", onClick: () => fileInputRef.current?.click() },
+                     { icon: <RefreshCw size={18}/>, title: "重置背景", tip: "🏠 返回最初的梦(默认壁纸)", onClick: () => { setBgUrl(DEFAULT_BG); setBgType('video'); initDB().then(db => { db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete("bg-blob"); }); alert("已重置为默认背景"); } },
+                     { icon: <Upload size={18}/>, title: "导出配置", tip: "📦 保存当前灵感实验室", onClick: () => { const d = JSON.stringify({ categories, theme, bgType }, null, 2); const b = new Blob([d], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "WEN_Backup.json"; a.click(); } },
+                     { icon: <Download size={18}/>, title: "导入配置", tip: "📥 加载以前的设计配置", onClick: () => configInputRef.current?.click() }
+                   ].map((btn, idx) => (
+                     <div key={idx} className="group relative flex justify-center">
+                       <button onClick={btn.onClick} className={`p-3 rounded-xl border transition-all shadow-xl ${currentTheme.panelInput} hover:scale-110 active:scale-90 hover:brightness-125`}>{btn.icon}</button>
+                       <div className={`absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-3 rounded-2xl text-[10px] font-bold shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>
+                         {btn.tip}
+                         <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+                 <div className="flex items-center gap-4">
+                   <div className={`text-[10px] opacity-60 font-bold uppercase tracking-[0.2em] hidden md:block ${currentTheme.panelMuted}`}>Engine Build v1.1.55</div>
+                   <button onClick={()=>setIsSettingsOpen(false)} className={`px-16 py-4 font-bold text-xs rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95 text-nowrap ${currentTheme.accent}`}>保存当前全部配置</button>
+                 </div>
+               </div>
             </motion.div>
           </div>
         )}
