@@ -173,10 +173,10 @@ const PageContent = memo(({ isVibrant }: { isVibrant: boolean }) => {
               hidden: { x: -100, opacity: 0, filter: "blur(10px)" },
               visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.6 } }
             }}
-            href="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/WenBrowser_Setup.exe"
+            href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_Setup.exe"
             className={`px-24 py-9 rounded-[2rem] text-[11px] font-black tracking-[0.4em] uppercase transition-all shadow-2xl border cursor-pointer ${isVibrant ? 'bg-cyan-600 border-cyan-500 text-white hover:bg-cyan-500' : 'bg-white/20 border-white/20 text-white/70 hover:bg-white/30'}`}
           >
-             <Download className="inline mr-5" size={24} strokeWidth={3} /> Install Final Release
+             <Download className="inline mr-5" size={24} strokeWidth={3} /> WENBrowser
           </motion.a>
 
           <motion.div 
@@ -296,7 +296,7 @@ export default function DownloadPage() {
           </div>
           <span className="text-[10px] font-black tracking-[0.5em] uppercase text-white/20 group-hover:text-white transition-all">Escape Portal</span>
         </Link>
-        <a href="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/WenBrowser_Setup.exe" className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-black tracking-widest uppercase shadow-xl hover:scale-105 active:scale-95 transition-all">
+        <a href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_Setup.exe" className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-black tracking-widest uppercase shadow-xl hover:scale-105 active:scale-95 transition-all">
            Flash Binary
         </a>
       </header>
