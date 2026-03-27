@@ -17,7 +17,7 @@ import {
   SortableContext, 
   sortableKeyboardCoordinates, 
   rectSortingStrategy,
-  verticalListStrategy,
+  verticalListSortingStrategy,
   useSortable
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -338,7 +338,7 @@ export default function Home() {
           <div className="max-w-[85rem] mx-auto pt-6">
             <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; if (id.startsWith('dropzone-')) return id.replace('dropzone-', ''); return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC || aC === aI || oC === oI) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); if (aCatIdx<0 || oCatIdx<0) return prev; const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); if (aIdx < 0) return prev; const [mI] = aL.splice(aIdx, 1); if (oI.startsWith('dropzone-')) oL.push(mI); else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); if (cI<0) return prev; const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={(e)=>{const {active, over} = e; if (over) { const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; if (id.startsWith('dropzone-')) return id.replace('dropzone-', ''); return categories.find(c => c.links.some(l => l.id === id))?.id; }; if (over.id === "new-cat-dropzone") { if (!categories.some(c => c.id === active.id)) { setCategories(prev => { let mL: any = null; const nCs = prev.map(cat => { const lI = cat.links.findIndex(l => l.id === active.id); if (lI >= 0) { mL = cat.links[lI]; const nLs = [...cat.links]; nLs.splice(lI, 1); return { ...cat, links: nLs }; } return cat; }); if (mL) return [...nCs, { id: `cat-${Date.now()}`, title: "新分类", links: [mL] }]; return prev; }); } } else if (active.id !== over.id) { if (categories.some(c => c.id === active.id)) { setCategories((items) => { const oldIdx = items.findIndex(i => i.id === active.id); const newIdx = items.findIndex(i => i.id === (over.id.toString().startsWith('dropzone-')?over.id.toString().replace('dropzone-',''):over.id)); return arrayMove(items, oldIdx, newIdx); }); } } } setActiveId(null);}}>
               <motion.main initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }} className="space-y-12">
-                <SortableContext items={categories.map(c => c.id)} strategy={verticalListStrategy}>
+                <SortableContext items={categories.map(c => c.id)} strategy={verticalListSortingStrategy}>
                   {categories.map((c) => (
                     <CategorySection
                       key={c.id} 
