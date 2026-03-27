@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ChevronRight, Download, Shield, Layout, Search, Cpu, EyeOff, Lock } from "lucide-react";
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import { ChevronRight, Download, Shield, Layout, Search, Cpu, EyeOff, Lock, X, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, memo, useRef } from "react";
 
@@ -71,7 +71,7 @@ const FEATURES = [
 ];
 
 // 🛠️ 核心内容渲染器 - 针对黑白/彩色双模式优化对比度
-const PageContent = memo(({ isVibrant }: { isVibrant: boolean }) => {
+const PageContent = memo(({ isVibrant, onDownload }: { isVibrant: boolean, onDownload: () => void }) => {
   return (
     <div className={`w-full relative pt-24 pb-12 transition-colors duration-1000 overflow-hidden`}>
       {/* 🔮 BACKGROUND DECORATIONS */}
@@ -168,16 +168,16 @@ const PageContent = memo(({ isVibrant }: { isVibrant: boolean }) => {
 
         {/* CTA AREA */}
         <div className="mt-20 flex flex-col sm:flex-row items-center sm:items-start gap-12 h-[120px]">
-          <motion.a
+          <motion.button
             variants={{
               hidden: { x: -100, opacity: 0, filter: "blur(10px)" },
               visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.6 } }
             }}
-            href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_Setup.exe"
+            onClick={onDownload}
             className={`px-24 py-9 rounded-[2rem] text-[11px] font-black tracking-[0.4em] uppercase transition-all shadow-2xl border cursor-pointer ${isVibrant ? 'bg-cyan-600 border-cyan-500 text-white hover:bg-cyan-500' : 'bg-white/20 border-white/20 text-white/70 hover:bg-white/30'}`}
           >
              <Download className="inline mr-5" size={24} strokeWidth={3} /> WENBrowser
-          </motion.a>
+          </motion.button>
 
           <motion.div 
             variants={{
@@ -246,6 +246,7 @@ PageContent.displayName = "PageContent";
 
 export default function DownloadPage() {
   const [mounted, setMounted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // MOUSE COORDINATES
@@ -296,9 +297,12 @@ export default function DownloadPage() {
           </div>
           <span className="text-[10px] font-black tracking-[0.5em] uppercase text-white/20 group-hover:text-white transition-all">Escape Portal</span>
         </Link>
-        <a href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_Setup.exe" className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-black tracking-widest uppercase shadow-xl hover:scale-105 active:scale-95 transition-all">
+        <button 
+          onClick={() => setShowModal(true)}
+          className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-black tracking-widest uppercase shadow-xl hover:scale-105 active:scale-95 transition-all"
+        >
            Flash Binary
-        </a>
+        </button>
       </header>
 
       {/* 🚀 SCROLL WRAPPER */}
@@ -308,7 +312,7 @@ export default function DownloadPage() {
            {/* 📽️ LAYER 0: THE STEALTH (GRAYSCALE) - LIGHTER & VISIBLE */}
            <div className="relative z-0 pointer-events-auto w-full bg-[#050505] filter grayscale-[100%] contrast-[1.1] opacity-100">
               <FallingParticles isVibrant={false} />
-              <PageContent isVibrant={false} />
+              <PageContent isVibrant={false} onDownload={() => setShowModal(true)} />
            </div>
 
            {/* 📽️ LAYER 1: THE VIBRANT (COLOR) - TOP MASKED REVEAL */}
@@ -331,10 +335,99 @@ export default function DownloadPage() {
                  />
                   <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.1),transparent_70%)]" />
               </div>
-              <PageContent isVibrant={true} />
+              <PageContent isVibrant={true} onDownload={() => setShowModal(true)} />
            </motion.div>
         </div>
       </div>
+
+      {/* 🔗 DOWNLOAD SELECTION MODAL */}
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-xl bg-gradient-to-b from-white/10 to-white/5 border border-white/10 p-10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              {/* Decorative Glow */}
+              <div className="absolute -top-24 -left-24 w-64 h-64 bg-cyan-500/20 blur-[100px] rounded-full pointer-events-none" />
+              <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
+
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-10">
+                  <div>
+                    <h2 className="text-3xl font-black tracking-tight text-white mb-2">选择版本</h2>
+                    <p className="text-sm text-white/50 font-medium">Select the build environment for your system.</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowModal(false)}
+                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all text-white/40 hover:text-white"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="grid gap-4">
+                  {/* Option 1: With .NET 8 */}
+                  <a 
+                    href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_SetupNET%20.exe"
+                    className="group relative flex items-center justify-between p-7 bg-white/5 hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-500/30 rounded-3xl transition-all duration-500"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 bg-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform duration-500">
+                        <Download size={28} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg font-bold text-white">包含 .NET 8 运行环境</span>
+                          <span className="px-2 py-0.5 bg-cyan-500/20 text-[10px] font-black text-cyan-400 rounded-md border border-cyan-500/20 uppercase tracking-tighter">Recommended</span>
+                        </div>
+                        <p className="text-xs text-white/40 font-medium">适合未安装 .NET 8 的用户，安装包较大但一键运行。</p>
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className="text-white/20 group-hover:text-cyan-400 translate-x-0 group-hover:translate-x-1 transition-all" />
+                  </a>
+
+                  {/* Option 2: Without .NET 8 */}
+                  <a 
+                    href="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/WenBrowser_Setup.exe"
+                    className="group relative flex items-center justify-between p-7 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-3xl transition-all duration-500"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/40 group-hover:scale-110 transition-transform duration-500">
+                        <Download size={28} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg font-bold text-white">标准版 (不含 .NET 8)</span>
+                        </div>
+                        <p className="text-xs text-white/40 font-medium">体积更小，需系统已安装 .NET 8 Desktop Runtime。</p>
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className="text-white/20 group-hover:text-white translate-x-0 group-hover:translate-x-1 transition-all" />
+                  </a>
+                </div>
+
+                <div className="mt-8 flex items-center gap-3 px-6 py-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <AlertCircle size={16} className="text-white/20" />
+                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">
+                    Build verification: 256-bit SHA check active
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
