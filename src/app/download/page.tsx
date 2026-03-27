@@ -5,6 +5,61 @@ import { ChevronRight, Download, Shield, Layout, Search, Cpu, EyeOff, Lock } fro
 import Link from "next/link";
 import { useEffect, useState, memo, useRef } from "react";
 
+// 🌸 动态粒子系统 (雪花/樱花/青色粒子)
+const FallingParticles = ({ theme, isVibrant }: { theme?: string, isVibrant?: boolean }) => {
+  const [particles, setParticles] = useState<any[]>([]);
+  const isSakura = theme === 'sakura';
+  const color = isVibrant ? '#06b6d4' : (isSakura ? '#ffb7c5' : '#ffffff');
+  
+  useEffect(() => {
+    const p = Array.from({ length: 60 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * 100, // %
+      delay: Math.random() * 10,
+      duration: 10 + Math.random() * 15,
+      size: (isSakura || isVibrant) ? (4 + Math.random() * 6) : (2 + Math.random() * 4),
+      sway: 100 + Math.random() * 150, // px
+      opacity: 0.15 + Math.random() * 0.45,
+      rotation: Math.random() * 360
+    }));
+    setParticles(p);
+  }, [theme, isSakura, isVibrant]);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[11]">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ y: -50, opacity: 0, rotate: p.rotation }}
+          animate={{ 
+            y: '110vh', 
+            x: [0, p.sway / 2, -p.sway / 2, 0],
+            opacity: [0, p.opacity, p.opacity, 0],
+            rotate: (isSakura || isVibrant) ? [p.rotation, p.rotation + 720] : 0
+          }}
+          transition={{ 
+            duration: p.duration, 
+            repeat: Infinity, 
+            delay: p.delay,
+            ease: "linear",
+            x: { duration: p.duration / 3, repeat: Infinity, ease: "easeInOut" }
+          }}
+          style={{
+            position: 'absolute',
+            left: `${p.x}%`,
+            width: p.size,
+            height: (isSakura || isVibrant) ? p.size * 0.8 : p.size,
+            backgroundColor: color,
+            borderRadius: (isSakura || isVibrant) ? '100% 10% 100% 10%' : '50%',
+            filter: (isSakura || isVibrant) ? 'none' : 'blur(0.5px)',
+            boxShadow: `0 0 10px ${color}44`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 // 🛠️ 核心功能数据
 const FEATURES = [
   { icon: <EyeOff />, title: "Ghost Mode", desc: "Alt+↑/↓ 实时调节全局透明度，灵动切换幽灵与实体形态，完美融入背景。" },
@@ -252,6 +307,7 @@ export default function DownloadPage() {
            
            {/* 📽️ LAYER 0: THE STEALTH (GRAYSCALE) - LIGHTER & VISIBLE */}
            <div className="relative z-0 pointer-events-auto w-full bg-[#050505] filter grayscale-[100%] contrast-[1.1] opacity-100">
+              <FallingParticles isVibrant={false} />
               <PageContent isVibrant={false} />
            </div>
 
@@ -264,6 +320,7 @@ export default function DownloadPage() {
              }}
            >
               <div className="absolute inset-0 bg-black pointer-events-none">
+                 <FallingParticles isVibrant={true} />
                  <video 
                    autoPlay 
                    muted 
