@@ -325,56 +325,69 @@ export default function Home() {
         <h1 className={`text-xl font-bold tracking-tighter italic hidden sm:block ${currentTheme.text}`}>WENBrowser</h1>
       </div>
 
-      <div className="relative z-[20] max-w-[85rem] mx-auto px-6 py-10 mt-24 h-full overflow-y-auto pb-64 custom-scrollbar">
-        <motion.div 
-          initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center gap-5 mb-16"
-        >
-          {/* 搜索引擎选择器 */}
-          <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
-            {Object.keys(ENGINES).map(id => ( 
-              <button 
-                key={id} 
-                onClick={()=>setEngine(id as any)} 
-                className={`px-6 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${
-                  engine===id 
-                  ? 'bg-white text-black shadow-lg border border-black/10 scale-105' 
-                  : theme === 'office' 
-                    ? 'text-slate-600 hover:text-slate-900' 
-                    : 'text-white/20 hover:text-white'
-                }`}
-              >
-                {ENGINES[id as keyof typeof ENGINES].name}
-              </button> 
-            ))}
-          </div>
-          <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full max-w-xl">
-            <div className={`flex items-center rounded-3xl border px-8 py-1 transition-all shadow-2xl ${
-              theme === 'office' 
-              ? 'bg-slate-950/5 border-slate-950/30 focus-within:bg-white/10 focus-within:ring-4 focus-within:ring-slate-950/5' 
-              : 'bg-white/5 border-white/20 focus-within:bg-white/20 focus-within:ring-4 focus-within:ring-white/5'
-            }`}>
-              <Search size={24} className={`${theme === 'office' ? 'text-slate-700' : 'text-white/60'} mr-5 transition-colors`} strokeWidth={3} />
-              <input 
-                value={search} 
-                onChange={e=>setSearch(e.target.value)} 
-                placeholder={`搜索灵感...`} 
-                className={`flex-1 py-5 bg-transparent text-base focus:outline-none font-bold ${
-                  theme === 'office' 
-                  ? 'placeholder-slate-500 text-slate-900' 
-                  : 'placeholder-white/20 text-white'
-                }`} 
-              />
-              <button type="submit" className={`p-2.5 rounded-xl transition-all ${theme === 'office' ? 'text-slate-400 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}>
-                <ChevronRight size={20} strokeWidth={3} />
-              </button>
+      <div className="relative z-[20] h-screen flex flex-col pt-32 overflow-hidden">
+        {/* 固定搜索头部 */}
+        <div className="flex-shrink-0 w-full max-w-xl mx-auto px-6 mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col items-center gap-5"
+          >
+            {/* 搜索引擎选择器 */}
+            <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
+              {Object.keys(ENGINES).map(id => ( 
+                <button 
+                  key={id} 
+                  onClick={()=>setEngine(id as any)} 
+                  className={`px-6 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${
+                    engine===id 
+                    ? 'bg-white text-black shadow-lg border border-black/10 scale-105' 
+                    : theme === 'office' 
+                      ? 'text-slate-600 hover:text-slate-900' 
+                      : 'text-white/20 hover:text-white'
+                  }`}
+                >
+                  {ENGINES[id as keyof typeof ENGINES].name}
+                </button> 
+              ))}
             </div>
-          </form>
-        </motion.div>
+            <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full">
+              <div className={`flex items-center rounded-3xl border px-8 py-1 transition-all shadow-2xl ${
+                theme === 'office' 
+                ? 'bg-slate-950/5 border-slate-950/30 focus-within:bg-white/10 focus-within:ring-4 focus-within:ring-slate-950/5' 
+                : 'bg-white/5 border-white/20 focus-within:bg-white/20 focus-within:ring-4 focus-within:ring-white/5'
+              }`}>
+                <Search size={24} className={`${theme === 'office' ? 'text-slate-700' : 'text-white/60'} mr-5 transition-colors`} strokeWidth={3} />
+                <input 
+                  value={search} 
+                  onChange={e=>setSearch(e.target.value)} 
+                  placeholder={`搜索灵感...`} 
+                  className={`flex-1 py-5 bg-transparent text-base focus:outline-none font-bold ${
+                    theme === 'office' 
+                    ? 'placeholder-slate-500 text-slate-900' 
+                    : 'placeholder-white/20 text-white'
+                  }`} 
+                />
+                <button type="submit" className={`p-2.5 rounded-xl transition-all ${theme === 'office' ? 'text-slate-400 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}>
+                  <ChevronRight size={20} strokeWidth={3} />
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
 
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>{setActiveId(null);}}>
+        {/* 滚动卡片区域 */}
+        <div 
+          className="flex-1 overflow-y-auto px-6 h-full custom-scrollbar pb-64"
+          style={{ 
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 80px)', 
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 80px)' 
+          }}
+        >
+          <div className="max-w-[85rem] mx-auto">
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>{setActiveId(null);}}>
+
           <motion.main 
             initial="hidden"
             animate="visible"
@@ -413,7 +426,8 @@ export default function Home() {
                </div>
             ) : null}
           </DragOverlay>
-        </DndContext>
+          </DndContext>
+        </div>
       </div>
 
       <AnimatePresence>
