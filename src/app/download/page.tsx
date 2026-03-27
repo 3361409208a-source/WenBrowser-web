@@ -1,82 +1,188 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ChevronRight, Download, Shield, Layout, Search, Cpu } from "lucide-react";
+import { ChevronRight, Download, Shield, Layout, Search, Cpu, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, memo, useRef } from "react";
+
+// 🛠️ 核心功能数据
+const FEATURES = [
+  { icon: <EyeOff />, title: "Ghost Mode", desc: "Alt+↑/↓ 实时调节全局透明度，灵动切换幽灵与实体形态，完美融入背景。" },
+  { icon: <Shield />, title: "Hyper-Stealth", desc: "Alt+B 瞬间剥离内核线程，在视觉与系统进程中实现物理级隐匿。" },
+  { icon: <Layout />, title: "Persona Map", desc: "内置 Office、VS Code 等多种专业皮肤，一键伪装成正在深度办公的状态。" },
+  { icon: <Search />, title: "AI Vision", desc: "智能感知用户视线聚焦，当检测到窥屏风险时，关键内容自动进入模糊保护。" },
+  { icon: <Cpu />, title: "Vortex Engine", desc: "Chromium 原生内核驱动，极致流畅不掉帧，完美兼容所有主流扩展插件。" },
+  { icon: <Lock />, title: "Zero Trace", desc: "配置完全本地加密存储，不上传任何浏览记录，让私密空间真正属于你自己。" }
+];
 
 // 🛠️ 核心内容渲染器 - 针对黑白/彩色双模式优化对比度
 const PageContent = memo(({ isVibrant }: { isVibrant: boolean }) => {
   return (
-    <div className={`w-full relative pt-8 pb-48 transition-colors duration-1000`}>
-      <main className="max-w-7xl mx-auto px-12">
-        {/* LOGO AREA */}
-        <div className="mb-28">
-          <div className="relative inline-block">
-             {isVibrant && <div className="absolute inset-0 bg-blue-500/40 blur-[100px] rounded-full animate-pulse" />}
-             <img
-               src="/logo.png"
-               alt="WEN Logo"
-               className={`w-32 h-32 object-contain relative z-10 transition-transform duration-700 ${isVibrant ? 'scale-110' : 'grayscale brightness-150 opacity-100'}`}
-             />
-          </div>
+    <div className={`w-full relative pt-24 pb-12 transition-colors duration-1000 overflow-hidden`}>
+      {/* 🔮 BACKGROUND DECORATIONS */}
+      {isVibrant && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <motion.div 
+            animate={{ 
+              x: [0, 100, 0], 
+              y: [0, 50, 0],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-cyan-600/10 blur-[180px] rounded-full" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -80, 0], 
+              y: [0, 100, 0],
+              scale: [1, 1.3, 1]
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-600/10 blur-[150px] rounded-full" 
+          />
         </div>
+      )}
 
+      <motion.main 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.3, delayChildren: 0.5 } }
+        }}
+        className="max-w-7xl mx-auto px-12 relative z-10"
+      >
         {/* HERO SECTION */}
-        <div className="space-y-16">
+        <motion.div 
+          variants={{
+            hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+            visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.1 } }
+          }}
+          className="space-y-12"
+        >
           <div className="inline-flex items-center gap-2 px-5 py-2 bg-white/10 border border-white/5 rounded-full mb-4">
              <span className={`w-2 h-2 rounded-full ${isVibrant ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
              <span className={`text-[10px] font-black uppercase tracking-[0.5em] ${isVibrant ? 'text-blue-400' : 'text-white/50'}`}>System Build Manifest</span>
           </div>
 
-          <h1 className={`text-8xl md:text-[11.5rem] font-black tracking-[-0.06em] leading-[0.8] transition-all ${isVibrant ? 'text-white' : 'text-white/70'}`}>
-            BEYOND <br />
-            <span className={isVibrant ? 'text-blue-500 italic' : 'text-white/50 italic'}>STEALTH</span>
+          <h1 className={`text-8xl md:text-[13rem] font-black tracking-[-0.08em] leading-[0.75] transition-all duration-1000 ${isVibrant ? 'text-white' : 'text-white/40'}`}>
+            <motion.span 
+              variants={{
+                hidden: { x: -150, opacity: 0, filter: "blur(20px)" },
+                visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 2.2, ease: [0.22, 1, 0.36, 1] } }
+              }}
+              className="block"
+            >
+              BEYOND
+            </motion.span>
+            <motion.span 
+              variants={{
+                hidden: { x: 150, opacity: 0, filter: "blur(20px)" },
+                visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 2.2, ease: [0.22, 1, 0.36, 1], delay: 0.4 } }
+              }}
+              className={`relative block ${isVibrant ? 'text-cyan-500' : 'text-white/20'}`}
+            >
+              STEALTH
+              {isVibrant && <motion.span initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1.5, delay: 0.5 }} className="absolute bottom-4 left-0 h-2 bg-cyan-500/50 blur-sm" />}
+            </motion.span>
           </h1>
 
           <p className={`max-w-2xl text-2xl md:text-3xl font-light leading-relaxed tracking-tighter transition-all duration-700 ${isVibrant ? 'text-white/80' : 'text-white/60'}`}>
              重新定义职场隐身学。 <br />
              <span className={isVibrant ? 'text-blue-400' : 'text-white/50'}>WENBrowser</span> 深度内核，掌控每一秒自由。
           </p>
-        </div>
 
-        {/* CTA AREA - 占位，实际按钮在遮罩层外 */}
-        <div className="mt-28 flex flex-col sm:flex-row items-center sm:items-start gap-12 h-[120px]">
-          <a
+          <div className="flex flex-wrap gap-8 pt-4">
+             {[
+               { key: "Alt + B", label: "瞬间遁形" },
+               { key: "Alt + ↑/↓", label: "调节透明度" },
+               { key: "Alt + H", label: "返回门户" }
+             ].map((item, i) => (
+               <div key={i} className="flex items-center gap-3">
+                 <span className={`px-3 py-1 rounded-md border text-[10px] font-black ${isVibrant ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-400' : 'bg-white/5 border-white/10 text-white/30'}`}>
+                   {item.key}
+                 </span>
+                 <span className={`text-xs font-bold tracking-widest ${isVibrant ? 'text-white/60' : 'text-white/30'}`}>
+                   {item.label}
+                 </span>
+               </div>
+             ))}
+          </div>
+        </motion.div>
+
+        {/* CTA AREA */}
+        <div className="mt-20 flex flex-col sm:flex-row items-center sm:items-start gap-12 h-[120px]">
+          <motion.a
+            variants={{
+              hidden: { x: -100, opacity: 0, filter: "blur(10px)" },
+              visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.6 } }
+            }}
             href="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/MoyuBrowser_Setup.exe"
-            className={`px-24 py-9 rounded-[2rem] text-[11px] font-black tracking-[0.4em] uppercase transition-all shadow-2xl border cursor-pointer ${isVibrant ? 'bg-blue-600 border-blue-500 text-white hover:bg-blue-500' : 'bg-white/20 border-white/20 text-white/70 hover:bg-white/30'}`}
+            className={`px-24 py-9 rounded-[2rem] text-[11px] font-black tracking-[0.4em] uppercase transition-all shadow-2xl border cursor-pointer ${isVibrant ? 'bg-cyan-600 border-cyan-500 text-white hover:bg-cyan-500' : 'bg-white/20 border-white/20 text-white/70 hover:bg-white/30'}`}
           >
              <Download className="inline mr-5" size={24} strokeWidth={3} /> Install Final Release
-          </a>
+          </motion.a>
 
-          <div className="flex flex-col gap-2">
-             <span className={`text-[10px] font-black tracking-[0.6em] uppercase pb-1 ${isVibrant ? 'text-blue-400' : 'text-white/50'}`}>Authority Check Passed</span>
+          <motion.div 
+            variants={{
+              hidden: { x: 100, opacity: 0, filter: "blur(10px)" },
+              visible: { x: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.8 } }
+            }}
+            className="flex flex-col gap-2"
+          >
+             <span className={`text-[10px] font-black tracking-[0.6em] uppercase pb-1 ${isVibrant ? 'text-cyan-400' : 'text-white/50'}`}>Authority Check Passed</span>
              <div className="flex items-center gap-4">
                 <span className={`text-md font-bold ${isVibrant ? 'text-white' : 'text-white/70'}`}>Chromium x64</span>
-                <div className={`w-1.5 h-1.5 rounded-full ${isVibrant ? 'bg-blue-500' : 'bg-white/40'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${isVibrant ? 'bg-cyan-500' : 'bg-white/40'}`} />
                 <span className={`text-md font-bold ${isVibrant ? 'text-white' : 'text-white/70'}`}>v1.1.55 Final</span>
              </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* FEATURES GRID */}
-        <section className="mt-80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { icon: <Shield />, title: "Hyper-Stealth", desc: "Alt+B 瞬间剥离内核线程，在视觉与内存中物理隐匿。" },
-            { icon: <Layout />, title: "Persona Map", desc: "智能映射工作负载，让你的每一个操作都符合职场背景。" },
-            { icon: <Search />, title: "AI Vision", desc: "感知用户视线离开，窗口静默进入低可见度保护状态。" },
-            { icon: <Cpu />, title: "Vortex Engine", desc: "Chromium 原生驱动，极致流畅，不掉帧，不卡顿。" }
-          ].map((feat, idx) => (
-            <div key={idx} className={`p-16 border rounded-[3rem] transition-all duration-700 ${isVibrant ? 'bg-white/5 border-white/20 bg-blue-900/10' : 'bg-white/[0.05] border-white/10'}`}>
-               <div className={`w-14 h-14 flex items-center justify-center mb-10 transition-all duration-700 ${isVibrant ? 'text-blue-500 scale-125' : 'text-white/40'}`}>
-                  {feat.icon}
-               </div>
-               <h3 className={`text-xl font-bold mb-4 tracking-tight transition-all duration-700 ${isVibrant ? 'text-white' : 'text-white/70'}`}>{feat.title}</h3>
-               <p className={`text-sm leading-relaxed transition-all duration-700 font-bold ${isVibrant ? 'text-white/40' : 'text-white/50'}`}>{feat.desc}</p>
-            </div>
-          ))}
-        </section>
-      </main>
+        {/* 🎡 INFINITE SCROLLING FEATURES */}
+        <div 
+          className="mt-20 overflow-hidden relative group" 
+          style={{ 
+            maskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%)' 
+          }}
+        >
+          <motion.div 
+            animate={{ x: [0, -1 * (FEATURES.length * 352)] }}
+            transition={{ 
+              duration: 45, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className="flex gap-8 py-10"
+            style={{ width: "fit-content" }}
+          >
+            {[...FEATURES, ...FEATURES, ...FEATURES].map((feat, idx) => (
+              <motion.div 
+                key={idx} 
+                className={`group relative flex-shrink-0 w-[320px] p-8 rounded-3xl border transition-all duration-700 overflow-hidden ${isVibrant ? 'bg-white/5 border-white/10 hover:border-cyan-500/40' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}
+              >
+                 {/* 🧬 AMBIENT ACCENT LINE */}
+                 <div className={`absolute top-0 left-0 w-full h-[1px] transition-opacity duration-700 ${isVibrant ? 'bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-100' : 'opacity-0'}`} />
+                 
+                 <div className={`w-12 h-12 flex items-center justify-center mb-6 rounded-xl border transition-all duration-700 ${isVibrant ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-500' : 'bg-white/5 border-white/5 text-white/20'}`}>
+                    {feat.icon}
+                 </div>
+                 <h3 className={`text-lg font-bold mb-3 tracking-tight transition-all duration-700 ${isVibrant ? 'text-white' : 'text-white/40'}`}>{feat.title}</h3>
+                 <p className={`text-[11px] leading-relaxed whitespace-normal transition-all duration-700 font-medium ${isVibrant ? 'text-white/30 group-hover:text-white/50' : 'text-white/20'}`}>{feat.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* 🎬 FOOTER INSIDE CONTENT */}
+        <footer className="mt-20 pt-10 border-t border-white/5 text-center transition-all duration-700">
+           <div className={`text-[10px] font-black tracking-[2em] uppercase transition-all duration-700 ${isVibrant ? 'text-white/20' : 'text-white/5'}`}>
+             WEN ENGINEERING / BUILD v1.1.55
+           </div>
+        </footer>
+      </motion.main>
     </div>
   );
 });
@@ -91,9 +197,9 @@ export default function DownloadPage() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  // SILKY FOLLOW SPRING
-  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 450 });
-  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 450 });
+  // 🚀 HIGHLY RESPONSIVE FOLLOW SPRING
+  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 800 });
+  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 800 });
 
   // 🚀 CRITICAL: ONE TRANSFORM HOOK ONLY
   const maskValue = useTransform(
@@ -118,7 +224,14 @@ export default function DownloadPage() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#111] overflow-hidden font-sans cursor-none select-none">
+    <div className="relative min-h-screen bg-[#050505] overflow-hidden font-sans select-none">
+      
+      {/* 📺 SCANLINE EFFECT */}
+      <div className="fixed inset-0 pointer-events-none z-[150] opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%]" />
+      
+      {/* 🎞️ NOISE TEXTURE */}
+      <div className="fixed inset-0 pointer-events-none z-[151] opacity-[0.05] bg-[url('https://res.cloudinary.com/dcb6m6vnr/image/upload/v1642944322/noise_pgeis7.png')] mix-blend-overlay" />
+
       
       {/* ⚪️ NAVBAR - SHARED */}
       <header className="fixed top-0 left-0 right-0 z-[100] px-12 py-10 flex items-center justify-between pointer-events-auto mix-blend-difference">
@@ -138,7 +251,7 @@ export default function DownloadPage() {
         <div className="relative w-full">
            
            {/* 📽️ LAYER 0: THE STEALTH (GRAYSCALE) - LIGHTER & VISIBLE */}
-           <div className="relative z-0 pointer-events-auto w-full bg-[#111] filter grayscale-[100%] contrast-[1.2] opacity-100">
+           <div className="relative z-0 pointer-events-auto w-full bg-[#050505] filter grayscale-[100%] contrast-[1.1] opacity-100">
               <PageContent isVibrant={false} />
            </div>
 
@@ -150,28 +263,22 @@ export default function DownloadPage() {
                maskImage: maskValue
              }}
            >
-              <div className="absolute inset-0 bg-[#0a0f2b] pointer-events-none">
-                 <div className="absolute top-[10%] left-[-10%] w-[100%] h-[80%] bg-blue-600/30 blur-[150px] rounded-full" />
+              <div className="absolute inset-0 bg-black pointer-events-none">
+                 <video 
+                   autoPlay 
+                   muted 
+                   loop 
+                   playsInline 
+                   className="fixed inset-0 w-screen h-screen object-cover opacity-80"
+                   src="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E8%B5%9B%E5%8D%9A%E6%9C%8B%E5%85%8B%E7%A7%91%E6%8A%80%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4"
+                 />
+                  <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.1),transparent_70%)]" />
               </div>
               <PageContent isVibrant={true} />
            </motion.div>
         </div>
-
-        <footer className="relative z-10 py-64 px-12 border-t border-white/5 bg-black text-center pointer-events-auto">
-           <div className="text-[10px] font-black text-white/5 tracking-[2em] uppercase tracking-widest">WEN ENGINEERING / BUILD v1.1.55</div>
-        </footer>
       </div>
 
-      {/* ⚪️ CUSTOM CURSOR */}
-      <motion.div 
-        className="fixed top-0 left-0 w-4 h-4 bg-white rounded-full z-[200] pointer-events-none mix-blend-difference shadow-[0_0_20px_white]"
-        style={{ 
-           x: smoothX, 
-           y: smoothY,
-           translateX: "-50%",
-           translateY: "-50%" 
-        }}
-      />
     </div>
   );
 }

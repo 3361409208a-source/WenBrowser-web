@@ -242,6 +242,10 @@ export default function Home() {
           {bgType==='video' ? ( <motion.video key={bgUrl} ref={videoRef} className="w-full h-full object-cover" src={bgUrl} autoPlay muted loop playsInline /> ) : ( <motion.img key={bgUrl} src={bgUrl} className="w-full h-full object-cover" /> )}
         </AnimatePresence>
         <div className={`absolute inset-0 transition-colors duration-1000 ${currentTheme.overlay}`} />
+        
+        {/* 🎞️ NOISE & SCANLINE OVERLAY */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-[1]" />
+        <div className="absolute inset-0 opacity-[0.05] bg-[url('https://res.cloudinary.com/dcb6m6vnr/image/upload/v1642944322/noise_pgeis7.png')] mix-blend-overlay z-[2]" />
       </div>
 
       <div className="fixed top-6 right-6 z-[100] flex items-center gap-2">
@@ -256,15 +260,17 @@ export default function Home() {
       </div>
 
       <div className="fixed top-6 left-6 z-[100] flex items-center gap-3">
-        <div className="w-10 h-10 flex items-center justify-center">
-           <img src={LOGO_URL} alt="WEN Logo" className="w-full h-full object-contain drop-shadow-lg" />
-        </div>
         <h1 className={`text-xl font-bold tracking-tighter italic hidden sm:block ${currentTheme.text}`}>WENBrowser</h1>
       </div>
 
       <div className="relative z-10 max-w-[85rem] mx-auto px-6 py-10 mt-24 h-full overflow-y-auto pb-64 custom-scrollbar">
-        <div className="flex flex-col items-center gap-5 mb-12">
-          {/* 修正：搜索引擎选择器在亮色背景下的对比度 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center gap-5 mb-16"
+        >
+          {/* 搜索引擎选择器 */}
           <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
             {Object.keys(ENGINES).map(id => ( 
               <button 
@@ -283,7 +289,6 @@ export default function Home() {
             ))}
           </div>
           <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full max-w-xl">
-            {/* 修正：搜索框在亮色背景下的对比度 */}
             <div className={`flex items-center rounded-3xl border px-8 py-1 transition-all shadow-2xl ${
               theme === 'office' 
               ? 'bg-slate-950/5 border-slate-950/30 focus-within:bg-white/10 focus-within:ring-4 focus-within:ring-slate-950/5' 
@@ -305,13 +310,27 @@ export default function Home() {
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id as string)} onDragOver={e=>{const { active, over } = e; if (!over) return; const aI = active.id as string; const oI = over.id as string; if (aI === oI) return; const fC = (id: string) => { if (categories.some(c => c.id === id)) return id; return categories.find(c => c.links.some(l => l.id === id))?.id; }; const aC = fC(aI); const oC = fC(oI); if (!aC || !oC) return; if (aC !== oC) { setCategories(prev => { const aCatIdx = prev.findIndex(c => c.id === aC); const oCatIdx = prev.findIndex(c => c.id === oC); const aL = [...prev[aCatIdx].links]; const oL = [...prev[oCatIdx].links]; const aIdx = aL.findIndex(l => l.id === aI); const [mI] = aL.splice(aIdx, 1); if (oI === oC) { oL.push(mI); } else { const oIdx = oL.findIndex(l => l.id === oI); oL.splice(oIdx >= 0 ? oIdx : oL.length, 0, mI); } const nC = [...prev]; nC[aCatIdx] = { ...prev[aCatIdx], links: aL }; nC[oCatIdx] = { ...prev[oCatIdx], links: oL }; return nC; }); } else { setCategories(prev => { const cI = prev.findIndex(c => c.id === aC); const nL = arrayMove(prev[cI].links, prev[cI].links.findIndex(l => l.id === aI), prev[cI].links.findIndex(l => l.id === oI)); const nC = [...prev]; nC[cI] = { ...prev[cI], links: nL }; return nC; }); } }} onDragEnd={()=>{setActiveId(null);}}>
-          <main className="space-y-16">
+          <motion.main 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.2, delayChildren: 0.4 } }
+            }}
+            className="space-y-12"
+          >
             {categories.map((c) => (
-              <section key={c.id}>
-                <div className="flex items-center gap-6 mb-6 px-2">
+              <motion.section 
+                key={c.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+                }}
+              >
+                <div className="flex items-center gap-6 mb-8 px-2">
                    <h2 className={`text-[12px] font-black tracking-[0.6em] uppercase opacity-60 ${currentTheme.text}`}>{c.title}</h2>
                    <div className={`h-[1px] flex-1 ${theme==='office' ? 'bg-slate-950/10' : 'bg-white/5'}`} />
                 </div>
@@ -321,9 +340,9 @@ export default function Home() {
                     <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={() => { setLinkModalData({ catId: c.id, name: '', url: 'https://' }); setIsLinkModalOpen(true); }} className={`flex items-center justify-center rounded-[1.4rem] border border-dashed border-white/20 hover:bg-white/5 transition-all aspect-square w-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={24} strokeWidth={3} /></motion.button>
                   </div>
                 </SortableContext>
-              </section>
+              </motion.section>
             ))}
-          </main>
+          </motion.main>
           <DragOverlay dropAnimation={null}>
             {activeId && categories.find(c=>c.links.some(l=>l.id===activeId)) ? (
                <div className={`p-3 rounded-[1.4rem] border shadow-2xl scale-110 w-[84px] aspect-square flex flex-col items-center justify-center pointer-events-none ${currentTheme.card}`}>
