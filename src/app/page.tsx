@@ -57,23 +57,27 @@ const HISTORICAL_KEYS = ["moyu-user-config-v29-favicons", "moyu-user-config-v28"
 const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 };
 
 function FaviconIcon({ url, name, theme }: { url: string; name: string; theme: ThemeKey }) {
-  const [error, setError] = useState(false);
+  const [loadStage, setLoadStage] = useState(0); // 0: gstatic(高清), 1: xinac(国产备份), 2: 字母占位
   
-  // 提取域名 (例如从 https://www.bilibili.com/ 提取出 www.bilibili.com)
   const getDomain = (link: string) => {
     try {
-      const hostname = new URL(link).hostname;
+      const hostname = new URL(link.startsWith('http') ? link : `https://${link}`).hostname;
       return hostname || link;
     } catch {
       return link;
     }
   };
 
-  const domain = getDomain(url || "");
-  // 使用国内更快的 iowen API
-  const faviconUrl = `https://api.iowen.cn/favicon/${domain}.png`;
+  const safeUrl = url.startsWith('http') ? url : `https://${url}`;
+  
+  // 第一级：gstatic.cn (高清、境内镜像)
+  // 第二级：api.xinac.net (纯国产接口，兼容性极高)
+  let faviconUrl = `https://t3.gstatic.cn/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(safeUrl)}&size=128`;
+  if (loadStage === 1) {
+    faviconUrl = `https://api.xinac.net/icon/?url=${encodeURIComponent(safeUrl)}`;
+  }
 
-  if (error || !url) {
+  if (loadStage >= 2 || !url) {
     return (
       <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white/5 flex items-center justify-center border border-white/5 font-bold">
         {name[0] || 'W'}
@@ -84,9 +88,10 @@ function FaviconIcon({ url, name, theme }: { url: string; name: string; theme: T
   return (
     <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white p-1 shadow-sm border border-white/5 flex items-center justify-center overflow-hidden">
       <img 
+        key={loadStage}
         src={faviconUrl} 
         alt={name} 
-        onError={() => setError(true)} 
+        onError={() => setLoadStage(prev => prev + 1)} 
         className="w-full h-full object-contain" 
       />
     </div>
