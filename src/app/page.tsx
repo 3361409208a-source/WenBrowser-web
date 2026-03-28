@@ -29,7 +29,7 @@ interface LinkItem { id: string; name: string; url: string; }
 interface Category { id: string; title: string; links: LinkItem[]; }
 type ThemeKey = "default" | "vscode" | "office" | "sakura" | "ocean";
 
-const DEFAULT_BG = "https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4";
+const DEFAULT_BG = "https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4";
 const LOGO_URL = "/logo.png";
 const DEFAULT_CATEGORIES: Category[] = [
   { id: "cat-1", title: "✨ 常用导航", links: [ { id: "link-1", name: "哔哩哔哩", url: "https://www.bilibili.com/" }, { id: "link-2", name: "抖音", url: "https://www.douyin.com/" }, { id: "link-3", name: "小红书", url: "https://www.xiaohongshu.com/" }, { id: "link-4", name: "腾讯视频", url: "https://v.qq.com/" }, { id: "link-5", name: "爱奇艺", url: "https://www.iqiyi.com/" }, { id: "link-6", name: "优酷", url: "https://www.youku.com/" } ] },

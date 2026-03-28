@@ -331,7 +331,7 @@ export default function DownloadPage() {
                    loop 
                    playsInline 
                    className="fixed inset-0 w-screen h-screen object-cover opacity-80"
-                   src="https://1k9xf3dmajzvdrha.public.blob.vercel-storage.com/%E8%B5%9B%E5%8D%9A%E6%9C%8B%E5%85%8B%E7%A7%91%E6%8A%80%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4"
+                   src="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E8%B5%9B%E5%8D%9A%E6%9C%8B%E5%85%8B%E7%A7%91%E6%8A%80%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4"
                  />
                   <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.1),transparent_70%)]" />
               </div>
