@@ -327,6 +327,14 @@ export default function Home() {
     initDB().then(db => { const tx = db.transaction(STORE_NAME, "readonly"); const store = tx.objectStore(STORE_NAME).get("bg-blob"); store.onsuccess = (ev: any) => { if (ev.target.result) { const b = ev.target.result; setBgUrl(URL.createObjectURL(b)); setBgType(b.type.startsWith('video') ? 'video' : 'image'); } setIsLoaded(true); }; store.onerror = () => setIsLoaded(true); }).catch(() => setIsLoaded(true));
   }, []);
 
+  useEffect(() => {
+    if (bgType === 'video' && videoRef.current && isPlaying) {
+      videoRef.current.play().catch(() => {
+         // Silently fail if blocked by policy
+      });
+    }
+  }, [bgUrl, bgType, isPlaying]);
+
   useEffect(() => { if (mounted && isLoaded) localStorage.setItem(STABLE_STORAGE_KEY, JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted, isLoaded]);
   const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
   const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
@@ -337,7 +345,7 @@ export default function Home() {
       <div className="fixed inset-0 z-0 select-none pointer-events-none">
         <div className={`absolute inset-0 z-10 transition-colors duration-1000 ${currentTheme.overlay}`} />
         <FallingParticles theme={theme} />
-        {bgType === 'video' ? <video key={bgUrl} ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" src={bgUrl} /> : <img key={bgUrl} src={bgUrl} className="absolute inset-0 w-full h-full object-cover" />}
+        {bgType === 'video' ? <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" src={bgUrl} /> : <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" />}
         <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-[1]" />
         <div className="absolute inset-0 opacity-[0.05] bg-[url('https://res.cloudinary.com/dcb6m6vnr/image/upload/v1642944322/noise_pgeis7.png')] mix-blend-overlay z-[2]" />
       </div>
