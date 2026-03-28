@@ -58,9 +58,39 @@ const springTransition = { type: "spring" as const, stiffness: 450, damping: 25 
 
 function FaviconIcon({ url, name, theme }: { url: string; name: string; theme: ThemeKey }) {
   const [error, setError] = useState(false);
-  const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${url}`;
-  if (error || !url) return <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white/5 flex items-center justify-center border border-white/5 font-bold">{name[0] || 'W'}</div>;
-  return <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white p-1 shadow-sm border border-white/5 flex items-center justify-center overflow-hidden"><img src={faviconUrl} alt={name} onError={() => setError(true)} className="w-full h-full object-contain" /></div>;
+  
+  // 提取域名 (例如从 https://www.bilibili.com/ 提取出 www.bilibili.com)
+  const getDomain = (link: string) => {
+    try {
+      const hostname = new URL(link).hostname;
+      return hostname || link;
+    } catch {
+      return link;
+    }
+  };
+
+  const domain = getDomain(url || "");
+  // 使用国内更快的 iowen API
+  const faviconUrl = `https://api.iowen.cn/favicon/${domain}.png`;
+
+  if (error || !url) {
+    return (
+      <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white/5 flex items-center justify-center border border-white/5 font-bold">
+        {name[0] || 'W'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-8 h-8 sm:w-9 sm:h-9 mb-1.5 rounded-[0.8rem] bg-white p-1 shadow-sm border border-white/5 flex items-center justify-center overflow-hidden">
+      <img 
+        src={faviconUrl} 
+        alt={name} 
+        onError={() => setError(true)} 
+        className="w-full h-full object-contain" 
+      />
+    </div>
+  );
 }
 
 function SortableItem({ link, theme, onRemove }: { link: LinkItem; theme: ThemeKey; onRemove: () => void }) {
