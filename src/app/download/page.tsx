@@ -70,6 +70,11 @@ const FEATURES = [
   { icon: <Lock />, title: "Zero Trace", desc: "配置完全本地加密存储，不上传任何浏览记录，让私密空间真正属于你自己。" }
 ];
 
+const BG_VIDEOS = [
+  "https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E8%B5%9B%E5%8D%9A%E6%9C%8B%E5%85%8B%E7%A7%91%E6%8A%80%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4", // 赛博朋克
+  "https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E5%B7%A8%E5%9E%8B%E7%A9%BA%E9%97%B4%E7%8E%AF%E7%90%83%E7%AB%99%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4" // 空间环球站
+];
+
 // 🛠️ 核心内容渲染器 - 针对黑白/彩色双模式优化对比度
 const PageContent = memo(({ isVibrant, onDownload }: { isVibrant: boolean, onDownload: () => void }) => {
   return (
@@ -247,6 +252,7 @@ PageContent.displayName = "PageContent";
 export default function DownloadPage() {
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [bgVideo, setBgVideo] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // MOUSE COORDINATES
@@ -269,6 +275,10 @@ export default function DownloadPage() {
 
   useEffect(() => {
     setMounted(true);
+    // 随机选择背景视频
+    const randomIdx = Math.floor(Math.random() * BG_VIDEOS.length);
+    setBgVideo(BG_VIDEOS[randomIdx]);
+
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
@@ -325,14 +335,14 @@ export default function DownloadPage() {
            >
               <div className="absolute inset-0 bg-black pointer-events-none">
                  <FallingParticles isVibrant={true} />
-                 <video 
-                   autoPlay 
-                   muted 
-                   loop 
-                   playsInline 
-                   className="fixed inset-0 w-screen h-screen object-cover opacity-80"
-                   src="https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E8%B5%9B%E5%8D%9A%E6%9C%8B%E5%85%8B%E7%A7%91%E6%8A%80%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90.mp4"
-                 />
+                  <video 
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline 
+                    className="fixed inset-0 w-screen h-screen object-cover opacity-80"
+                    src={bgVideo}
+                  />
                   <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.1),transparent_70%)]" />
               </div>
               <PageContent isVibrant={true} onDownload={() => setShowModal(true)} />
