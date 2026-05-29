@@ -159,13 +159,13 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
   const currentTrack = tracks[currentTrackIndex];
 
   return (
-    <div className="fixed bottom-10 left-10 z-[400] flex flex-col items-start gap-4">
-      <div className="pointer-events-none fixed bottom-0 left-0 w-full px-10 pb-4 flex justify-center">
+    <div className="fixed bottom-4 left-4 sm:bottom-10 sm:left-10 z-[400] flex flex-col items-start gap-4">
+      <div className="pointer-events-none fixed bottom-0 left-0 w-full px-4 sm:px-10 pb-4 flex justify-center">
         <canvas 
           ref={canvasRef} 
           width={1800} 
           height={400} 
-          className="opacity-100 transition-all w-full max-w-full drop-shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+          className="opacity-100 transition-all w-full max-w-full drop-shadow-[0_0_40px_rgba(255,255,255,0.3)] hidden sm:block"
           style={{ 
             filter: isPlaying ? 'none' : 'grayscale(1) opacity(0.05)',
           }}
@@ -174,16 +174,16 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
 
       <motion.div 
         layout
-        className={`backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden transition-all duration-500 ${isExpanded ? 'w-[320px] p-6' : 'w-auto p-3'} ${theme === 'office' ? 'bg-slate-900/15' : 'bg-black/40'}`}
+        className={`backdrop-blur-3xl border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden transition-all duration-500 ${isExpanded ? 'w-[calc(100vw-2rem)] max-w-[320px] p-4 sm:p-6' : 'w-auto p-2 sm:p-3'} ${theme === 'office' ? 'bg-slate-900/15' : 'bg-black/40'}`}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <motion.div 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handlePlayPause}
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer transition-all shadow-lg ${theme === 'sakura' ? 'bg-pink-500/80' : theme === 'ocean' ? 'bg-cyan-500/80' : theme === 'office' ? 'bg-slate-800' : 'bg-white/10'}`}
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center cursor-pointer transition-all shadow-lg ${theme === 'sakura' ? 'bg-pink-500/80' : theme === 'ocean' ? 'bg-cyan-500/80' : theme === 'office' ? 'bg-slate-800' : 'bg-white/10'}`}
           >
-            {isPlaying ? <Pause className="text-white fill-white" size={20} /> : <Play className="text-white fill-white ml-1" size={20} />}
+            {isPlaying ? <Pause className="text-white fill-white" size={18} /> : <Play className="text-white fill-white ml-1" size={18} />}
           </motion.div>
 
           {!isExpanded ? (
@@ -212,7 +212,7 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-6 space-y-4"
+              className="mt-4 sm:mt-6 space-y-3 sm:space-y-4"
             >
               <div className="flex items-center gap-3">
                 <Volume2 className="text-white/30" size={14} />
@@ -231,34 +231,34 @@ export default function MusicPlayer({ theme }: MusicPlayerProps) {
                 />
               </div>
 
-              <div className="flex items-center justify-center gap-6 pt-2">
+              <div className="flex items-center justify-center gap-4 sm:gap-6 pt-2">
                  <button 
                     onClick={() => setCurrentTrackIndex(prev => (prev - 1 + tracks.length) % tracks.length)}
-                    className="p-3 text-white/40 hover:text-white transition-all"
+                    className="p-2 sm:p-3 text-white/40 hover:text-white transition-all"
                  >
-                    <SkipBack size={18} />
+                    <SkipBack size={16} className="sm:hidden" /><SkipBack size={18} className="hidden sm:block" />
                  </button>
                  <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className={`p-4 rounded-full transition-all shadow-xl ${theme === 'sakura' ? 'bg-pink-500 hover:bg-pink-400' : theme === 'ocean' ? 'bg-cyan-500 hover:bg-cyan-400' : theme === 'office' ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white/20 hover:bg-white/30'}`}
+                    className={`p-3 sm:p-4 rounded-full transition-all shadow-xl ${theme === 'sakura' ? 'bg-pink-500 hover:bg-pink-400' : theme === 'ocean' ? 'bg-cyan-500 hover:bg-cyan-400' : theme === 'office' ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white/20 hover:bg-white/30'}`}
                  >
-                    <Upload size={18} className="text-white" />
+                    <Upload size={16} className="sm:hidden text-white" /><Upload size={18} className="hidden sm:block text-white" />
                  </button>
                  <button 
                     onClick={() => setCurrentTrackIndex(prev => (prev + 1) % tracks.length)}
-                    className="p-3 text-white/40 hover:text-white transition-all"
+                    className="p-2 sm:p-3 text-white/40 hover:text-white transition-all"
                  >
-                    <SkipForward size={18} />
+                    <SkipForward size={16} className="sm:hidden" /><SkipForward size={18} className="hidden sm:block" />
                  </button>
               </div>
 
               {tracks.length > 0 && (
-                <div className="pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-2 mb-3 text-white/30 truncate">
+                <div className="pt-3 sm:pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3 text-white/30 truncate">
                     <List size={12} />
                     <span className="text-[10px] font-bold uppercase tracking-widest">Playlist ({tracks.length})</span>
                   </div>
-                  <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+                  <div className="max-h-28 sm:max-h-32 overflow-y-auto custom-scrollbar space-y-1 pr-1">
                     {tracks.map((track, idx) => (
                       <button 
                         key={track.id}
