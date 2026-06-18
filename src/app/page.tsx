@@ -1,34 +1,39 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { 
-  DndContext, 
-  closestCenter, 
+import dynamic from "next/dynamic";
+import {
+  DndContext,
+  closestCenter,
   rectIntersection,
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
   useSensors,
   DragOverlay,
   useDroppable
 } from "@dnd-kit/core";
-import { 
-  arrayMove, 
-  SortableContext, 
-  sortableKeyboardCoordinates, 
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
   rectSortingStrategy,
   verticalListSortingStrategy,
   useSortable
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Palette, Upload, Globe, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon, Download } from "lucide-react";
+import { Settings, Play, Pause, Volume2, VolumeX, Plus, X, Search, Trash2, Shield, Palette, Upload, Globe, FolderPlus, Layers, ChevronRight, Hash, Check, RefreshCw, Image as ImageIcon, Download, Flame } from "lucide-react";
 import Link from "next/link";
 import MusicPlayer from "@/components/MusicPlayer";
+import { LAVA_PALETTES } from "@/components/LavaFluid/LavaBackground";
+
+const LavaBackground = dynamic(() => import("@/components/LavaFluid/LavaBackground"), { ssr: false });
 
 interface LinkItem { id: string; name: string; url: string; }
 interface Category { id: string; title: string; links: LinkItem[]; }
 type ThemeKey = "default" | "vscode" | "office" | "sakura" | "ocean";
+type BgType = "video" | "image" | "lava";
 
 const DEFAULT_BG = "https://wenbrowser-1330371299.cos.ap-guangzhou.myqcloud.com/%E3%80%90%E5%93%B2%E9%A3%8E%E5%A3%81%E7%BA%B8%E3%80%91Kuroha%E4%BD%9C%E5%93%81-%E5%8A%A8%E6%BC%AB%E7%BA%BF%E7%A8%BF.mp4";
 const LOGO_URL = "/logo.png";
@@ -38,11 +43,11 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 const THEMES: Record<ThemeKey, { name: string; overlay: string; text: string; accent: string; card: string; panel: string; btn: string; subtext: string; border: string; preview: string; panelText: string; panelSidebar: string; panelBorder: string; panelInput: string; panelMuted: string; }> = {
-  default: { name: "极客毛玻璃", overlay: "bg-black/40", text: "text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]", accent: "bg-white text-black", card: "bg-white/5 border-white/10", panel: "bg-black/60 backdrop-blur-3xl text-white", subtext: "text-white/30", border: "border-white/5", btn: "bg-white/5 text-white hover:bg-white/10", preview: "bg-slate-400", panelText: "text-white", panelSidebar: "bg-black/20", panelBorder: "border-white/10", panelInput: "bg-white/5 border-white/5 text-white", panelMuted: "text-white/20" },
-  vscode: { name: "VS Code 暗色", overlay: "bg-[#1e1e1e]/60", text: "text-[#cccccc]", accent: "bg-[#007acc] text-white", card: "bg-white/5 border-white/5", panel: "bg-[#1e1e1ec0] backdrop-blur-3xl text-[#cccccc]", subtext: "text-[#666666]", border: "border-[#333]", btn: "bg-[#333333] text-[#ccc] hover:bg-[#444]", preview: "bg-[#007acc]", panelText: "text-[#cccccc]", panelSidebar: "bg-[#252526]", panelBorder: "border-[#444]", panelInput: "bg-[#3c3c3c] border-[#555] text-[#cccccc]", panelMuted: "text-[#666666]" },
-  office: { name: "Office 简约白", overlay: "bg-white/10", text: "text-slate-950 font-black", accent: "bg-[#2b579a] text-white", card: "bg-slate-950/10 border-slate-950/30 shadow-2xl", panel: "bg-white/80 backdrop-blur-3xl text-slate-950", subtext: "text-slate-800 font-bold", border: "border-slate-400", btn: "bg-slate-100 text-slate-800 hover:bg-slate-200", preview: "bg-slate-200", panelText: "text-slate-950", panelSidebar: "bg-slate-50", panelBorder: "border-slate-300", panelInput: "bg-slate-50 border-slate-300 text-slate-950", panelMuted: "text-slate-700" },
-  sakura: { name: "樱花粉", overlay: "bg-pink-100/10", text: "text-slate-900 font-bold", accent: "bg-pink-500 text-white", card: "bg-white/20 border-white/30 shadow-xl", panel: "bg-pink-50/80 backdrop-blur-3xl text-slate-900", subtext: "text-slate-800 font-bold", border: "border-pink-300", btn: "bg-pink-50 text-slate-800 hover:bg-pink-100", preview: "bg-pink-400", panelText: "text-slate-950", panelSidebar: "bg-pink-100/40", panelBorder: "border-pink-300", panelInput: "bg-white/90 border-pink-300 text-slate-900", panelMuted: "text-slate-700" },
-  ocean: { name: "深海蓝", overlay: "bg-blue-900/20", text: "text-blue-50 font-bold", accent: "bg-cyan-500 text-white", card: "bg-white/10 border-blue-400/30 shadow-xl", panel: "bg-blue-950/80 backdrop-blur-3xl text-white", subtext: "text-blue-400/40", border: "border-blue-800", btn: "bg-blue-800/60 text-blue-100 hover:bg-blue-700/60", preview: "bg-cyan-600", panelText: "text-blue-50", panelSidebar: "bg-blue-900/50", panelBorder: "border-blue-800", panelInput: "bg-blue-900/50 border-blue-700 text-blue-50", panelMuted: "text-blue-300/40" },
+  default: { name: "Cyber Glass", overlay: "bg-black/60", text: "text-white font-medium tracking-wide drop-shadow-md", accent: "bg-white text-black", card: "bg-white/5 border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-white/10 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]", panel: "bg-black/70 backdrop-blur-2xl text-white shadow-2xl", subtext: "text-white/40", border: "border-white/10", btn: "bg-white/10 text-white hover:bg-white/20", preview: "bg-zinc-800", panelText: "text-white", panelSidebar: "bg-white/5", panelBorder: "border-white/10", panelInput: "bg-white/5 border-white/10 text-white focus:border-white/30", panelMuted: "text-white/30" },
+  vscode: { name: "Terminal Brutalist", overlay: "bg-[#0a0a0a]/80", text: "text-[#00ff41] font-mono tracking-tighter", accent: "bg-[#00ff41] text-black", card: "bg-black border-[#00ff41]/30 hover:border-[#00ff41] rounded-none", panel: "bg-black/90 backdrop-blur-md text-[#00ff41] rounded-none border-2 border-[#00ff41]/50 shadow-[4px_4px_0px_#00ff41]", subtext: "text-[#00ff41]/50 font-mono", border: "border-[#00ff41]/30", btn: "bg-transparent border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41] hover:text-black rounded-none", preview: "bg-[#0a0a0a]", panelText: "text-[#00ff41] font-mono", panelSidebar: "bg-black border-r border-[#00ff41]/30", panelBorder: "border-[#00ff41]/50", panelInput: "bg-black border border-[#00ff41]/50 text-[#00ff41] rounded-none focus:border-[#00ff41]", panelMuted: "text-[#008f11]" },
+  office: { name: "Minimalist Pearl", overlay: "bg-[#fafafa]/40", text: "text-zinc-800 font-light tracking-tight", accent: "bg-zinc-900 text-white", card: "bg-white/70 border-white/50 shadow-[0_4px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.08)] rounded-3xl", panel: "bg-white/90 backdrop-blur-3xl text-zinc-900 shadow-[0_24px_64px_rgba(0,0,0,0.08)]", subtext: "text-zinc-400", border: "border-zinc-200/50", btn: "bg-zinc-100 text-zinc-800 hover:bg-zinc-200", preview: "bg-zinc-200", panelText: "text-zinc-900", panelSidebar: "bg-zinc-50/50", panelBorder: "border-zinc-200/50", panelInput: "bg-zinc-50 border-zinc-200/50 text-zinc-900 focus:border-zinc-300", panelMuted: "text-zinc-400" },
+  sakura: { name: "Sakura Dream", overlay: "bg-rose-50/30", text: "text-rose-900 font-medium tracking-wide", accent: "bg-rose-400 text-white shadow-[0_0_20px_rgba(251,113,133,0.4)]", card: "bg-white/40 border-white/60 shadow-[0_8px_32px_rgba(225,29,72,0.05)] hover:shadow-[0_16px_48px_rgba(225,29,72,0.1)] rounded-[2rem]", panel: "bg-white/80 backdrop-blur-3xl text-rose-950 shadow-[0_24px_80px_rgba(225,29,72,0.15)]", subtext: "text-rose-400", border: "border-rose-200/60", btn: "bg-rose-100/50 text-rose-700 hover:bg-rose-200/50", preview: "bg-rose-300", panelText: "text-rose-900", panelSidebar: "bg-rose-50/50", panelBorder: "border-rose-200/60", panelInput: "bg-white/50 border-rose-200/60 text-rose-900 focus:border-rose-300", panelMuted: "text-rose-400" },
+  ocean: { name: "Midnight Abyss", overlay: "bg-slate-950/60", text: "text-cyan-50 font-medium tracking-wide", accent: "bg-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)]", card: "bg-slate-900/40 border-cyan-500/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:border-cyan-400/40 hover:shadow-[0_8px_32px_rgba(6,182,212,0.2)] rounded-2xl", panel: "bg-slate-900/80 backdrop-blur-2xl text-cyan-50 shadow-[0_24px_80px_rgba(0,0,0,0.5)]", subtext: "text-cyan-600", border: "border-cyan-900/50", btn: "bg-cyan-950/50 text-cyan-400 hover:bg-cyan-900/50 border border-cyan-800/50", preview: "bg-cyan-900", panelText: "text-cyan-50", panelSidebar: "bg-slate-950/50", panelBorder: "border-cyan-900/50", panelInput: "bg-slate-950/50 border-cyan-900/50 text-cyan-50 focus:border-cyan-700/50", panelMuted: "text-cyan-700" },
 };
 
 const ENGINES = {
@@ -105,17 +110,17 @@ function SortableItem({ link, theme, onRemove }: { link: LinkItem; theme: ThemeK
   const themeData = THEMES[theme];
   return (
     <motion.div ref={setNodeRef} style={style} transition={springTransition} className={`group relative ${isDragging ? "opacity-0" : "opacity-100"} flex justify-center w-full aspect-square`}>
-      <div {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 rounded-[1.2rem] border transition-all cursor-move w-full h-full ${themeData.card} hover:border-black/50 shadow-xl overflow-hidden`}>
+      <motion.div whileHover={{ y: -6, scale: 1.04 }} whileTap={{ scale: 0.95 }} {...attributes} {...listeners} className={`flex flex-col items-center justify-center p-2.5 sm:p-3 border transition-all duration-300 cursor-move w-full h-full ${themeData.card} overflow-hidden backdrop-blur-xl group-hover:border-white/30`}>
         <a href={link.url} target="_blank" rel="noopener noreferrer" className="contents">
           <FaviconIcon url={link.url} name={link.name} theme={theme} />
-          <span className={`text-[0.5625rem] sm:text-[0.625rem] font-bold tracking-tight truncate w-full px-1 text-center leading-tight ${themeData.text}`}>{link.name}</span>
+          <span className={`text-[0.625rem] sm:text-[0.7rem] font-medium tracking-tight truncate w-full px-1 text-center leading-tight mt-1 ${themeData.text}`}>{link.name}</span>
         </a>
-      </div>
+      </motion.div>
       <div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-2 rounded-2xl text-[0.5625rem] font-bold shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[150] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${themeData.panel} border ${themeData.border} backdrop-blur-3xl`}>
         🚀 点击开启 / 🎨 拖动重排
         <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${themeData.panel} ${themeData.border}`} />
       </div>
-      <button onClick={onRemove} className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all scale-75 hover:scale-100 shadow-xl z-[160]"><X size={10} strokeWidth={4} /></button>
+      <button onClick={onRemove} className="absolute -top-2 -right-2 p-1.5 bg-red-500/90 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100 shadow-xl z-[160] hover:bg-red-500"><X size={12} strokeWidth={4} /></button>
     </motion.div>
   );
 }
@@ -229,13 +234,13 @@ function CategorySection({ c, theme, onRemoveLink, onAddLink, onRename }: { c: C
   const handleBlur = () => { setIsEditing(false); if (editTitle.trim() && editTitle !== c.title) onRename(editTitle.trim()); };
 
   return (
-    <motion.section ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-30' : 'opacity-100'} transition-opacity outline-none`} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}>
+    <motion.section ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-30 scale-95' : 'opacity-100 scale-100'} transition-all duration-300 outline-none`} variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}>
       <div {...(isEditing ? {} : attributes)} {...(isEditing ? {} : listeners)} className="flex items-center gap-6 mb-8 px-2 group/handle">
         <div className="relative">
           {isEditing ? (
             <input
               autoFocus
-              className={`text-[0.75rem] font-black tracking-[0.6em] uppercase bg-transparent border-b border-dashed border-white/20 focus:border-white/60 focus:outline-none py-1 min-w-[150px] ${currentTheme.text}`}
+              className={`text-[0.875rem] sm:text-[1rem] font-medium tracking-[0.4em] bg-transparent border-b border-dashed border-white/20 focus:border-white/60 focus:outline-none py-1 min-w-[150px] ${currentTheme.text}`}
               value={editTitle}
               onChange={e => setEditTitle(e.target.value)}
               onBlur={handleBlur}
@@ -244,7 +249,7 @@ function CategorySection({ c, theme, onRemoveLink, onAddLink, onRename }: { c: C
           ) : (
             <h2 
               onClick={() => { setIsEditing(true); setEditTitle(c.title); }}
-              className={`text-[0.75rem] font-black tracking-[0.6em] uppercase opacity-60 group-hover/handle:opacity-100 transition-opacity cursor-text hover:bg-white/5 px-2 -mx-2 rounded h-8 flex items-center ${currentTheme.text}`}
+              className={`text-[0.875rem] sm:text-[1rem] font-medium tracking-[0.4em] opacity-80 group-hover/handle:opacity-100 transition-opacity cursor-text hover:bg-white/5 px-3 py-1 -mx-3 rounded-lg h-9 flex items-center ${currentTheme.text}`}
             >
               {c.title}
             </h2>
@@ -254,12 +259,12 @@ function CategorySection({ c, theme, onRemoveLink, onAddLink, onRename }: { c: C
         {isEditing && <div className="flex-1 h-8 flex items-center"><div className={`h-[1px] w-full opacity-5 bg-white`} /></div>}
       </div>
       <SortableContext items={c.links.map(l => l.id)} strategy={rectSortingStrategy}>
-        <div ref={setDroppableRef} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-3 sm:gap-4 lg:gap-5 min-h-[100px]">
+        <div ref={setDroppableRef} className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 xl:grid-cols-11 2xl:grid-cols-12 gap-3 sm:gap-4 lg:gap-5 min-h-[120px] p-2 -m-2 rounded-3xl">
           {c.links.map((l) => (<SortableItem key={l.id} link={l} theme={theme} onRemove={() => onRemoveLink(l.id)} />))}
           <div className="group relative flex justify-center w-full aspect-square">
-            <motion.button whileHover={{ scale: 1.05 }} transition={springTransition} onClick={onAddLink} className={`flex items-center justify-center rounded-[1.4rem] border border-dashed border-white/20 hover:bg-white/5 transition-all w-full h-full shadow-lg ${currentTheme.card}`}><Plus className={currentTheme.text} size={24} strokeWidth={3} /></motion.button>
+            <motion.button whileHover={{ scale: 1.04, y: -6 }} whileTap={{ scale: 0.95 }} transition={springTransition} onClick={onAddLink} className={`flex flex-col items-center justify-center rounded-[1.2rem] sm:rounded-[1.4rem] border border-dashed border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-300 w-full h-full shadow-lg ${currentTheme.card} backdrop-blur-md`}><Plus className={`${currentTheme.text} opacity-50 group-hover:opacity-100 transition-opacity`} size={24} strokeWidth={2.5} /></motion.button>
             <div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-2 rounded-2xl text-[0.625rem] font-bold shadow-2xl z-[100] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>
-              ➕ 在此分类下添加快捷节点
+              ➕ 添加快捷节点
               <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} />
             </div>
           </div>
@@ -308,7 +313,8 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [bgUrl, setBgUrl] = useState(DEFAULT_BG);
-  const [bgType, setBgType] = useState<"video" | "image">("video");
+  const [bgType, setBgType] = useState<BgType>("video");
+  const [lavaPaletteIndex, setLavaPaletteIndex] = useState<number>(-1);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [uiScale, setUiScale] = useState(1);
@@ -324,7 +330,7 @@ export default function Home() {
     setMounted(true);
     let s = localStorage.getItem(STABLE_STORAGE_KEY);
     if (!s) { for (const k of HISTORICAL_KEYS) { const d = localStorage.getItem(k); if (d) { s = d; break; } } }
-    if (s) { try { const p = JSON.parse(s); if (p.categories) { setCategories(p.categories); setSelectedCatId(p.categories[0]?.id || null); } if (p.theme) setTheme(p.theme); if (p.bgType) setBgType(p.bgType); } catch { setSelectedCatId(DEFAULT_CATEGORIES[0].id); } }
+    if (s) { try { const p = JSON.parse(s); if (p.categories) { setCategories(p.categories); setSelectedCatId(p.categories[0]?.id || null); } if (p.theme) setTheme(p.theme); if (p.bgType) setBgType(p.bgType); if (typeof p.lavaPaletteIndex === "number") setLavaPaletteIndex(p.lavaPaletteIndex); } catch { setSelectedCatId(DEFAULT_CATEGORIES[0].id); } }
     else setSelectedCatId(DEFAULT_CATEGORIES[0].id);
     initDB().then(db => { const tx = db.transaction(STORE_NAME, "readonly"); const store = tx.objectStore(STORE_NAME).get("bg-blob"); store.onsuccess = (ev: any) => { if (ev.target.result) { const b = ev.target.result; setBgUrl(URL.createObjectURL(b)); setBgType(b.type.startsWith('video') ? 'video' : 'image'); } setIsLoaded(true); }; store.onerror = () => setIsLoaded(true); }).catch(() => setIsLoaded(true));
   }, []);
@@ -337,47 +343,54 @@ export default function Home() {
     }
   }, [bgUrl, bgType, isPlaying]);
 
-  useEffect(() => { if (mounted && isLoaded) localStorage.setItem(STABLE_STORAGE_KEY, JSON.stringify({ categories, bgType, theme })); }, [categories, bgType, theme, mounted, isLoaded]);
+  useEffect(() => { if (mounted && isLoaded) localStorage.setItem(STABLE_STORAGE_KEY, JSON.stringify({ categories, bgType, theme, lavaPaletteIndex })); }, [categories, bgType, theme, lavaPaletteIndex, mounted, isLoaded]);
   const togglePlay = () => { if (videoRef.current) { if (isPlaying) videoRef.current.pause(); else videoRef.current.play(); setIsPlaying(!isPlaying); } };
   const toggleMute = () => { if (videoRef.current) { videoRef.current.muted = !isMuted; setIsMuted(!isMuted); } };
   const currentTheme = THEMES[theme]; if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden transition-colors duration-500" style={{ fontFamily: 'MaoKenZhuyuanTi, sans-serif' }}>
+    <div className="relative min-h-screen overflow-hidden transition-colors duration-500">
       <div className="fixed inset-0 z-0 select-none pointer-events-none">
         <div className={`absolute inset-0 z-10 transition-colors duration-1000 ${currentTheme.overlay}`} />
         <FallingParticles theme={theme} />
-        {bgType === 'video' ? <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" src={bgUrl} /> : <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" />}
+        {bgType === 'lava' && <LavaBackground paletteIndex={lavaPaletteIndex} />}
+        {bgType === 'video' && <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" src={bgUrl} />}
+        {bgType === 'image' && <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" />}
         <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-[1]" />
         <div className="absolute inset-0 opacity-[0.05] bg-[url('https://res.cloudinary.com/dcb6m6vnr/image/upload/v1642944322/noise_pgeis7.png')] mix-blend-overlay z-[2]" />
       </div>
 
       <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[500] flex items-center gap-1.5 sm:gap-2">
-        <Link href="/download" className="px-3 py-2 sm:px-5 sm:py-2.5 bg-white text-black rounded-lg sm:rounded-xl font-bold text-[0.625rem] sm:text-xs hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 sm:gap-2 shadow-xl border border-black/5 whitespace-nowrap"><Download size={12} className="sm:hidden" /><Download size={14} className="hidden sm:block" /> <span className="hidden sm:inline">WENBrowser</span><span className="sm:hidden">下载</span></Link>
-        <div className="flex bg-black/20 backdrop-blur-2xl rounded-lg sm:rounded-xl p-1 border border-white/5 shadow-2xl">
-          <motion.button whileTap={{scale:0.95}} onClick={()=>{setIsSettingsOpen(true);}} className="p-1.5 sm:p-2 text-white/30 hover:text-white transition-all"><Settings size={14} className="sm:hidden"/><Settings size={16} className="hidden sm:block"/></motion.button>
-          <button onClick={togglePlay} className="p-1.5 sm:p-2 text-white/30 hover:text-white transition-all">{isPlaying ? <Pause size={14} fill="currentColor" className="sm:hidden"/> : <Play size={14} fill="currentColor" className="sm:hidden"/>}{isPlaying ? <Pause size={16} fill="currentColor" className="hidden sm:block"/> : <Play size={16} fill="currentColor" className="hidden sm:block"/>}</button>
-          <button onClick={toggleMute} className="p-1.5 sm:p-2 text-white/30 hover:text-white transition-all">{isMuted ? <VolumeX size={14} className="sm:hidden"/> : <Volume2 size={14} className="sm:hidden"/>}{isMuted ? <VolumeX size={16} className="hidden sm:block"/> : <Volume2 size={16} className="hidden sm:block"/>}</button>
+        <Link href="/download" className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-full font-bold text-[0.625rem] sm:text-[0.75rem] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 shadow-lg border backdrop-blur-md ${currentTheme.card} ${currentTheme.text}`}><Download size={14} className="sm:hidden" /><Download size={16} className="hidden sm:block" /> <span className="hidden sm:inline tracking-wider">DOWNLOAD APP</span><span className="sm:hidden">APP</span></Link>
+      </div>
+
+      <div className="fixed top-4 left-4 sm:top-6 sm:left-6 z-[100] flex items-center gap-3">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
+          <img src="/logo.png" alt="WEN" className="w-full h-full object-cover" />
         </div>
+        <h1 className={`text-base sm:text-[1.25rem] font-black tracking-widest ${currentTheme.text}`}>WEN</h1>
       </div>
 
-      <div className="fixed top-4 left-4 sm:top-6 sm:left-6 z-[100] flex items-center gap-2 sm:gap-3">
-        <img src="/logo.png" alt="WEN" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain" />
-        <h1 className={`text-sm sm:text-[1.25rem] font-bold tracking-tighter italic ${currentTheme.text}`}>WENBrowser</h1>
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[500] flex items-center gap-2 p-2 rounded-full border shadow-[0_32px_64px_rgba(0,0,0,0.5)] backdrop-blur-3xl transition-all duration-500 scale-90 sm:scale-100 hover:scale-100 sm:hover:scale-105 group/dock" style={{ backgroundColor: theme === 'office' ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.6)', borderColor: theme === 'office' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)' }}>
+        <motion.button whileHover={{ y: -4 }} whileTap={{scale:0.9}} onClick={()=>{setIsSettingsOpen(true);}} className="p-3 sm:p-4 rounded-full transition-all text-white/50 hover:text-white hover:bg-white/10" style={{ color: theme === 'office' ? '#64748b' : undefined }}><Settings size={20} /></motion.button>
+        <div className="w-px h-6 bg-white/20 mx-1" style={{ backgroundColor: theme === 'office' ? 'rgba(0,0,0,0.1)' : undefined }} />
+        <motion.button whileHover={{ y: -4 }} whileTap={{scale:0.9}} onClick={togglePlay} className="p-3 sm:p-4 rounded-full transition-all text-white/50 hover:text-white hover:bg-white/10" style={{ color: theme === 'office' ? '#64748b' : undefined }}>{isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</motion.button>
+        <motion.button whileHover={{ y: -4 }} whileTap={{scale:0.9}} onClick={toggleMute} className="p-3 sm:p-4 rounded-full transition-all text-white/50 hover:text-white hover:bg-white/10" style={{ color: theme === 'office' ? '#64748b' : undefined }}>{isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}</motion.button>
+        <div className="w-px h-6 bg-white/20 mx-1" style={{ backgroundColor: theme === 'office' ? 'rgba(0,0,0,0.1)' : undefined }} />
+        <motion.button whileHover={{ y: -4 }} whileTap={{scale:0.9}} onClick={()=>setIsCatModalOpen(true)} className={`p-3 sm:p-4 rounded-full transition-all shadow-lg ${currentTheme.accent}`}><FolderPlus size={20} /></motion.button>
       </div>
 
-      <div className="relative z-[20] min-h-screen flex flex-col pt-16 sm:pt-20 overflow-hidden">
-        <div className="flex-shrink-0 w-full max-w-xl mx-auto px-4 sm:px-6 mb-6 sm:mb-10">
-          <motion.div initial={{ opacity: 0, y: 30, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center gap-3 sm:gap-5">
-            <div className={`flex rounded-xl p-1 border transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-900/15 border-slate-900/20' : 'bg-white/5 border-white/10'}`}>
-              {Object.keys(ENGINES).map(id => (<button key={id} onClick={()=>setEngine(id as any)} className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg text-[0.625rem] font-black tracking-widest transition-all ${engine===id ? 'bg-white text-black shadow-lg border border-black/10 scale-105' : theme === 'office' ? 'text-slate-600 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}>{ENGINES[id as keyof typeof ENGINES].name}</button>))}
+      <div className="relative z-[20] min-h-screen flex flex-col pt-24 sm:pt-32 overflow-hidden">
+        <div className="flex-shrink-0 w-full max-w-2xl mx-auto px-4 sm:px-6 mb-10 sm:mb-16">
+          <motion.div initial={{ opacity: 0, y: 40, filter: "blur(12px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col items-center gap-6">
+            <div className={`flex rounded-full p-1.5 border transition-all duration-300 shadow-2xl backdrop-blur-xl ${theme === 'office' ? 'bg-white/80 border-slate-200' : 'bg-black/40 border-white/10'}`}>
+              {Object.keys(ENGINES).map(id => (<button key={id} onClick={()=>setEngine(id as any)} className={`px-6 py-2 sm:px-8 sm:py-2.5 rounded-full text-[0.6875rem] font-bold tracking-[0.2em] transition-all duration-300 ${engine===id ? currentTheme.accent + ' shadow-lg scale-105' : theme === 'office' ? 'text-slate-500 hover:text-slate-900' : 'text-white/40 hover:text-white'}`}>{ENGINES[id as keyof typeof ENGINES].name}</button>))}
             </div>
             <form onSubmit={(e)=>{ e.preventDefault(); if (search.trim()) window.open(`${ENGINES[engine].url}${search}`, "_blank"); }} className="w-full">
-              <div className={`flex items-center rounded-2xl sm:rounded-3xl border px-4 sm:px-8 py-0.5 sm:py-1 transition-all shadow-2xl ${theme === 'office' ? 'bg-slate-950/5 border-slate-950/30 focus-within:bg-white/10 focus-within:ring-4 focus-within:ring-slate-950/5' : 'bg-white/5 border-white/20 focus-within:bg-white/20 focus-within:ring-4 focus-within:ring-white/5'}`}>
-                <Search size={20} className={`sm:hidden ${theme === 'office' ? 'text-slate-700' : 'text-white/60'} mr-3 transition-colors`} strokeWidth={3} />
-                <Search size={24} className={`hidden sm:block ${theme === 'office' ? 'text-slate-700' : 'text-white/60'} mr-5 transition-colors`} strokeWidth={3} />
-                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索灵感..." className={`flex-1 py-3 sm:py-5 bg-transparent text-sm sm:text-base focus:outline-none font-bold ${theme === 'office' ? 'placeholder-slate-500 text-slate-900' : 'placeholder-white/20 text-white'}`} />
-                <button type="submit" className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl transition-all ${theme === 'office' ? 'text-slate-400 hover:text-slate-900' : 'text-white/20 hover:text-white'}`}><ChevronRight size={18} strokeWidth={3} className="sm:hidden"/><ChevronRight size={20} strokeWidth={3} className="hidden sm:block"/></button>
+              <div className={`flex items-center rounded-[2rem] sm:rounded-[2.5rem] border-2 px-6 sm:px-10 py-1.5 sm:py-2 transition-all duration-500 shadow-[0_24px_64px_rgba(0,0,0,0.2)] ${theme === 'office' ? 'bg-white/90 border-slate-200 focus-within:bg-white focus-within:border-slate-400 focus-within:shadow-[0_24px_64px_rgba(0,0,0,0.1)]' : 'bg-black/50 border-white/10 focus-within:bg-black/70 focus-within:border-white/30 focus-within:shadow-[0_0_40px_rgba(255,255,255,0.1)]'} backdrop-blur-2xl`}>
+                <Search size={28} className={`${theme === 'office' ? 'text-slate-400' : 'text-white/40'} mr-4 transition-colors`} strokeWidth={2.5} />
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Explore the infinite..." className={`flex-1 py-4 sm:py-6 bg-transparent text-base sm:text-lg focus:outline-none font-medium tracking-wide ${theme === 'office' ? 'placeholder-slate-400 text-slate-900' : 'placeholder-white/30 text-white'}`} />
+                <button type="submit" className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${theme === 'office' ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/40 hover:text-white hover:bg-white/10'}`}><ChevronRight size={24} strokeWidth={2.5} /></button>
               </div>
             </form>
           </motion.div>
@@ -436,7 +449,7 @@ export default function Home() {
              <motion.div key="settings-modal-content" initial={{opacity:0, scale: 0.95, y: 30}} animate={{opacity:1, scale: 1, y: 0}} exit={{opacity:0, scale: 0.95, y: 30}} className={`relative ${currentTheme.panel} border ${currentTheme.panelBorder} rounded-none sm:rounded-[1.8rem] w-full max-w-5xl h-[100dvh] sm:h-[85vh] flex flex-col shadow-2xl overflow-hidden`}>
                 <div className={`px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between border-b ${currentTheme.panelBorder}`}><div className="flex items-center gap-3 sm:gap-4"><div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center border ${currentTheme.panelBorder} ${currentTheme.panelSidebar}`}><Shield size={18} className="sm:hidden opacity-60" /><Shield size={20} className="hidden sm:block opacity-60" /></div><div><h3 className={`text-sm sm:text-[1.125rem] font-bold ${currentTheme.panelText}`}>WEN 控制面板</h3><p className={`text-[0.5rem] sm:text-[0.5625rem] opacity-60 uppercase tracking-widest mt-0.5 ${currentTheme.panelMuted}`}>Configuration System</p></div></div><button onClick={()=>setIsSettingsOpen(false)} className={`p-2 opacity-30 hover:opacity-100 transition-all ${currentTheme.panelText}`}><X size={22}/></button></div>
                 <div className="flex-1 overflow-hidden flex flex-col sm:flex-row">
-                   <div className={`w-full sm:w-[280px] border-b sm:border-b-0 sm:border-r ${currentTheme.panelBorder} flex flex-col ${currentTheme.panelSidebar} font-bold`}><div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-8 sm:space-y-12"><section><div className="flex items-center justify-between mb-4"><label className={`text-[0.625rem] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Palette size={12}/> 视觉主题 / THEMES</label></div><div className="flex items-center justify-between gap-1.5 px-0.5">{(Object.keys(THEMES) as ThemeKey[]).map(key => (<button key={key} onClick={() => setTheme(key)} className={`group relative flex-1 aspect-square rounded-lg border transition-all flex items-center justify-center overflow-hidden h-9 ${theme === key ? 'border-primary' : `${currentTheme.panelBorder}`}`}><div className={`absolute inset-0 ${THEMES[key].preview} opacity-80`} />{theme === key && <Check size={14} className="relative z-10 text-white" />}</button>))}</div></section><section><div className="flex items-center justify-between mb-6"><label className={`text-[0.625rem] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Layers size={12}/> 分类管理 / CLUSTERS</label><div className="group relative flex justify-center"><button onClick={()=>setIsCatModalOpen(true)} className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all ${currentTheme.panelText}`}><Plus size={14}/></button><div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-3 py-1.5 rounded-2xl text-[0.5625rem] font-bold shadow-2xl z-[150] transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>📂 创建全新分类模块<div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} /></div></div></div><div className="space-y-3">{categories.map((cat) => (<button key={cat.id} onClick={()=>setSelectedCatId(cat.id)} className={`w-full text-left px-4 sm:px-5 py-3 sm:py-4 rounded-xl text-[0.6875rem] font-bold flex items-center justify-between transition-all border ${selectedCatId === cat.id ? `${currentTheme.accent} border-transparent shadow-lg` : `${currentTheme.panelSidebar} ${currentTheme.panelBorder} opacity-60 hover:opacity-100`}`}><span className="truncate">{cat.title}</span><span className="opacity-50 font-mono">{cat.links.length}</span></button>))}</div></section></div></div>
+                   <div className={`w-full sm:w-[280px] border-b sm:border-b-0 sm:border-r ${currentTheme.panelBorder} flex flex-col ${currentTheme.panelSidebar} font-bold`}><div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-8 sm:space-y-12"><section><div className="flex items-center justify-between mb-4"><label className={`text-[0.625rem] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Palette size={12}/> 视觉主题 / THEMES</label></div><div className="flex items-center justify-between gap-1.5 px-0.5">{(Object.keys(THEMES) as ThemeKey[]).map(key => (<button key={key} onClick={() => setTheme(key)} className={`group relative flex-1 aspect-square rounded-lg border transition-all flex items-center justify-center overflow-hidden h-9 ${theme === key ? 'border-primary' : `${currentTheme.panelBorder}`}`}><div className={`absolute inset-0 ${THEMES[key].preview} opacity-80`} />{theme === key && <Check size={14} className="relative z-10 text-white" />}</button>))}</div></section><section><div className="flex items-center justify-between mb-4"><label className={`text-[0.625rem] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Flame size={12}/> 熔岩调色 / LAVA PALETTE</label></div><div className="grid grid-cols-3 gap-2 px-0.5">{LAVA_PALETTES.map((palette, idx) => (<button key={palette.name} onClick={() => setLavaPaletteIndex(prev => prev === idx ? -1 : idx)} className={`group relative h-9 rounded-lg border transition-all flex items-center justify-center overflow-hidden ${lavaPaletteIndex === idx ? 'border-orange-500 ring-1 ring-orange-500/50' : currentTheme.panelBorder}`} title={palette.name}><div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${palette.colors[0]}, ${palette.colors[1]}, ${palette.colors[2]})` }} />{lavaPaletteIndex === idx && <Check size={14} className="relative z-10 text-white drop-shadow-md" />}</button>))}<button onClick={() => setLavaPaletteIndex(-1)} className={`h-9 rounded-lg border transition-all flex items-center justify-center text-[0.5rem] uppercase tracking-wider ${lavaPaletteIndex === -1 ? 'border-orange-500 text-orange-400 bg-orange-500/10' : currentTheme.panelBorder + ' ' + currentTheme.panelText}`}>自动</button></div></section><section><div className="flex items-center justify-between mb-6"><label className={`text-[0.625rem] font-bold uppercase tracking-[0.3em] opacity-80 flex items-center gap-2 ${currentTheme.panelText}`}><Layers size={12}/> 分类管理 / CLUSTERS</label><div className="group relative flex justify-center"><button onClick={()=>setIsCatModalOpen(true)} className={`p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all ${currentTheme.panelText}`}><Plus size={14}/></button><div className={`absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-3 py-1.5 rounded-2xl text-[0.5625rem] font-bold shadow-2xl z-[150] transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>📂 创建全新分类模块<div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} /></div></div></div><div className="space-y-3">{categories.map((cat) => (<button key={cat.id} onClick={()=>setSelectedCatId(cat.id)} className={`w-full text-left px-4 sm:px-5 py-3 sm:py-4 rounded-xl text-[0.6875rem] font-bold flex items-center justify-between transition-all border ${selectedCatId === cat.id ? `${currentTheme.accent} border-transparent shadow-lg` : `${currentTheme.panelSidebar} ${currentTheme.panelBorder} opacity-60 hover:opacity-100`}`}><span className="truncate">{cat.title}</span><span className="opacity-50 font-mono">{cat.links.length}</span></button>))}</div></section></div></div>
                    <div className="flex-1 flex flex-col overflow-hidden">
                      {selectedCatId && categories.find(c=>c.id===selectedCatId) ? (
                        <>
@@ -470,11 +483,12 @@ export default function Home() {
                     {[
                       { icon: <><ImageIcon size={16} className="sm:hidden"/><ImageIcon size={18} className="hidden sm:block"/></>, title: "更换背景", tip: "✨ 自定义你的专属空间", onClick: () => fileInputRef.current?.click() },
                       { icon: <><RefreshCw size={16} className="sm:hidden"/><RefreshCw size={18} className="hidden sm:block"/></>, title: "重置背景", tip: "🏠 返回最初的梦(默认壁纸)", onClick: () => { setBgUrl(DEFAULT_BG); setBgType('video'); initDB().then(db => { db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete("bg-blob"); }); alert("已重置为默认背景"); } },
+                      { icon: <><Flame size={16} className="sm:hidden"/><Flame size={18} className="hidden sm:block"/></>, title: "熔岩背景", tip: bgType === 'lava' ? "🌋 当前：熔岩模式（点击关闭）" : "🌋 切换到熔岩背景", onClick: () => setBgType(prev => prev === 'lava' ? 'video' : 'lava') },
                       { icon: <><Upload size={16} className="sm:hidden"/><Upload size={18} className="hidden sm:block"/></>, title: "导出配置", tip: "📦 保存当前灵感实验室", onClick: () => { const d = JSON.stringify({ categories, theme, bgType }, null, 2); const b = new Blob([d], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "WEN_Backup.json"; a.click(); } },
                       { icon: <><Download size={16} className="sm:hidden"/><Download size={18} className="hidden sm:block"/></>, title: "导入配置", tip: "📥 加载以前的设计配置", onClick: () => configInputRef.current?.click() }
                     ].map((btn, idx) => (
                       <div key={idx} className="group relative flex justify-center">
-                        <button onClick={btn.onClick} className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border transition-all shadow-xl ${currentTheme.panelInput} hover:scale-110 active:scale-90 hover:brightness-125`}>{btn.icon}</button>
+                        <button onClick={btn.onClick} className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border transition-all shadow-xl hover:scale-110 active:scale-90 hover:brightness-125 ${btn.title === '熔岩背景' && bgType === 'lava' ? 'bg-orange-500/30 border-orange-500/60 text-orange-400' : currentTheme.panelInput}`}>{btn.icon}</button>
                         <div className={`absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 pointer-events-none whitespace-nowrap px-4 py-3 rounded-2xl text-[0.625rem] font-bold shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] transition-all duration-500 cubic-bezier(0.175,0.885,0.32,1.275) ${currentTheme.panel} border ${currentTheme.panelBorder} backdrop-blur-3xl`}>
                           {btn.tip}
                           <div className={`absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${currentTheme.panel} ${currentTheme.panelBorder}`} />

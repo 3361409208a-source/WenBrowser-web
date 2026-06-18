@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin", "cyrillic"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "WEN | Portal",
@@ -31,7 +34,7 @@ export default function RootLayout({
         <link rel="icon" href="/logo.png" sizes="any" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
       </head>
-      <body className="antialiased overflow-x-hidden">
+      <body className={`${inter.className} antialiased overflow-x-hidden min-h-screen bg-black`}>
         {children}
       </body>
     </html>
