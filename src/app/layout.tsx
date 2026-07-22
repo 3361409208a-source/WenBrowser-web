@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], display: "swap" });
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased overflow-x-hidden min-h-screen bg-black`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
