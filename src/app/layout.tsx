@@ -34,6 +34,13 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/logo.png" sizes="any" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <script
+          defer
+          src="/_vercel/insights/script.js"
+          data-sdkn="@vercel/analytics/next"
+          data-sdkv="2.0.1"
+          data-disable-auto-track="1"
+        />
       </head>
       <body className={`${inter.className} antialiased overflow-x-hidden min-h-screen bg-black`}>
         {children}
